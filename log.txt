@@ -1,0 +1,3 @@
+/home/me/code/go/src/BookShopBot/main.go:16: Starting ...
+/home/me/code/go/src/BookShopBot/utils.go:30: Authorized on account Xbookshopbot
+/home/me/code/go/src/BookShopBot/main.go:25: Authorized on account Xbookshopbot
