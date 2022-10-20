@@ -23,7 +23,16 @@ func OpenLogFile(log_file_path string) (*os.File, error) {
 	return logFile, nil
 }
 
-// Returns file bytes
+func WriteBytesToFile(path string, bytes []byte) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = f.Write(bytes)
+	return err
+}
+
 func DownloadFileFromURL(url string) ([]byte, error) {
 	// Download file
 	res, err := http.Get(url)
