@@ -4,6 +4,9 @@ import (
 	"time"
 )
 
+type Model interface {
+	User | Address | Book | BookCoverType | BookSize | BookAgeCategory | Order | OrderStatus | Cart | CartItem
+}
 type Base struct {
 	ID        int `gorm:"primary"`
 	CreatedAt *time.Time
@@ -33,47 +36,48 @@ type Address struct {
 }
 type Book struct {
 	Base
-	ISBN             string
-	Title            string
-	Author           string
-	Translator       string
-	PaperType        string
-	Description      string
-	NumberOfPages    int
-	Genre            string
-	Censored         bool
-	Publisher        string
-	PublishDate      *time.Time
-	Price            float64
-	GoogleReadsScore float32
-	ArezoScore       float32
+	ISBN           string
+	Title          string
+	Author         string
+	Translator     string
+	PaperType      string
+	Description    string
+	NumberOfPages  int
+	Genre          string
+	Censored       bool
+	Publisher      string
+	PublishDate    string
+	Price          float64
+	GoodReadsScore float32
+	ArezoScore     float32
 
 	// Book has many BookCoverTypes
-	CoverTypes []*BookCoverType `gorm:"many2many;book_covertype_m2m;"`
+	CoverType       *BookCoverType `gorm:"foreignkey:BookCoverTypeID"`
+	BookCoverTypeID int
 	// Book has many BookSize
-	Sizes []*BookSize `gorm:"many2many;book_booksize_m2m;"`
+	BookSize   *BookSize `gorm:"foreignkey:BookSizeID"`
+	BookSizeID int
 	// Book has one BookAgeCategory
 	BookAgeCategoryID int
-	BookAgeCategory   *BookAgeCategory
+	BookAgeCategory   *BookAgeCategory `gorm:"foreignkey:BookAgeCategoryID"`
 }
 type BookCoverType struct {
 	Base
 	Type string
 	// BookCoverType has many Book
-	Books []*Book `gorm:"many2many;book_covertype_m2m;"`
+	Books []*Book
 }
 type BookSize struct {
 	Base
 	Name string
 	// BookSize has many Book
-	Books []*Book `gorm:"many2many;book_booksize_m2m;"`
+	Books []*Book
 }
 type BookAgeCategory struct {
 	Base
 	Category string
 	// BookAgeCategory has many Book
-	BookID int
-	Books  []*Book
+	Books []*Book
 }
 
 // Ordering

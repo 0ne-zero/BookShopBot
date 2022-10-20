@@ -3,5 +3,9 @@ package bot
 import tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 var SEARCH_BOOK_INLINE_KEYBOARD = tgbotapi.NewInlineKeyboardMarkup(
-	tgbotapi.NewInlineKeyboardRow(tgbotapi.InlineKeyboardButton{Text: "وارد کردن عبارت حستجو", SwitchInlineQueryCurrentChat: &EMPTY_STRING}),
+	tgbotapi.NewInlineKeyboardRow(tgbotapi.InlineKeyboardButton{Text: ENTER_SEARCH_PHRASE_TEXT, SwitchInlineQueryCurrentChat: &EMPTY_STRING}),
+)
+var SEARCH_BOOK_FOR_DELETE_INLINE_KEYBOARD = tgbotapi.NewInlineKeyboardMarkup(
+	tgbotapi.NewInlineKeyboardRow(tgbotapi.InlineKeyboardButton{Text: ENTER_SEARCH_PHRASE_FOR_DELETE_BOOK_TEXT, SwitchInlineQueryCurrentChat: &DELETE_STRING}),
+	tgbotapi.NewInlineKeyboardRow(tgbotapi.InlineKeyboardButton{Text: CANCEL_KEYBOARD_ITEM_TITLE}),
 )

@@ -104,6 +104,139 @@ func MigrateModels(db *gorm.DB) error {
 		&model.CartItem{},
 	)
 }
+func CreateEssensialData(db *gorm.DB) error {
+	var err error
+	// Book
+	err = db.FirstOrCreate(&model.Book{
+		Base: model.Base{ID: 1}, ISBN: "978402894626", Title: "Why", Author: "Me", Translator: "Me", PaperType: "Normal", Description: "See why?",
+		NumberOfPages: 542, Genre: "History", Censored: false, Publisher: "You", PublishDate: "Now", Price: 430, GoodReadsScore: 4.9, ArezoScore: 5,
+		BookCoverTypeID: 1, BookAgeCategoryID: 1, BookSizeID: 5}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.Book{
+		Base: model.Base{ID: 2}, ISBN: "978402894626", Title: "Yeah", Author: "Me", Translator: "Me", PaperType: "Normal", Description: "Just yeah",
+		NumberOfPages: 542, Genre: "History", Censored: false, Publisher: "You", PublishDate: "Now", Price: 430, GoodReadsScore: 4.9, ArezoScore: 5,
+		BookCoverTypeID: 1, BookAgeCategoryID: 1, BookSizeID: 5}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.Book{
+		Base: model.Base{ID: 3}, ISBN: "978402894626", Title: "Ofcourse", Author: "Me", Translator: "Me", PaperType: "Normal", Description: "Ofcourse",
+		NumberOfPages: 542, Genre: "History", Censored: false, Publisher: "You", PublishDate: "Now", Price: 430, GoodReadsScore: 4.9, ArezoScore: 5,
+		BookCoverTypeID: 1, BookAgeCategoryID: 1, BookSizeID: 5}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.Book{
+		Base: model.Base{ID: 4}, ISBN: "978402894626", Title: "Ok", Author: "Me", Translator: "Me", PaperType: "Normal", Description: "Ok",
+		NumberOfPages: 542, Genre: "History", Censored: false, Publisher: "You", PublishDate: "Now", Price: 430, GoodReadsScore: 4.9, ArezoScore: 5,
+		BookCoverTypeID: 1, BookAgeCategoryID: 1, BookSizeID: 5}).Error
+	if err != nil {
+		return err
+	}
+	// Order status
+	err = db.FirstOrCreate(&model.OrderStatus{Base: model.Base{ID: 1}, Status: "در انتظار پرداخت"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.OrderStatus{Base: model.Base{ID: 2}, Status: "در صف تایید"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.OrderStatus{Base: model.Base{ID: 3}, Status: "تایید شده"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.OrderStatus{Base: model.Base{ID: 4}, Status: "در حال بسته بندی"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.OrderStatus{Base: model.Base{ID: 5}, Status: "در حال ارسال"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.OrderStatus{Base: model.Base{ID: 6}, Status: "تحویل داده شده"}).Error
+	if err != nil {
+		return err
+	}
+	// Cover type
+	err = db.FirstOrCreate(&model.BookCoverType{Base: model.Base{ID: 1}, Type: "گالینور"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.BookCoverType{Base: model.Base{ID: 2}, Type: "شومیز"}).Error
+	if err != nil {
+		return err
+	}
+	// Book size
+	err = db.FirstOrCreate(&model.BookSize{Base: model.Base{ID: 1}, Name: "جیبی"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.BookSize{Base: model.Base{ID: 2}, Name: "پالتویی"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.BookSize{Base: model.Base{ID: 3}, Name: "رقعی"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.BookSize{Base: model.Base{ID: 4}, Name: "وزیری"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.BookSize{Base: model.Base{ID: 5}, Name: "خشتی"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.BookSize{Base: model.Base{ID: 6}, Name: "رحلی کوچک"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.BookSize{Base: model.Base{ID: 7}, Name: "رحلی بزرگ"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.BookSize{Base: model.Base{ID: 8}, Name: "بیاضی"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.BookSize{Base: model.Base{ID: 9}, Name: "سلطانی"}).Error
+	if err != nil {
+		return err
+	}
+	// Book age category
+	err = db.FirstOrCreate(&model.BookAgeCategory{Base: model.Base{ID: 1}, Category: "خردسال"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.BookAgeCategory{Base: model.Base{ID: 2}, Category: "خردسال"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.BookAgeCategory{Base: model.Base{ID: 3}, Category: "نوجوان"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.BookAgeCategory{Base: model.Base{ID: 4}, Category: "بزرگسال"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.BookAgeCategory{Base: model.Base{ID: 5}, Category: "میانسال"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.BookAgeCategory{Base: model.Base{ID: 6}, Category: "کهنسال"}).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// func CreateIfNotExists[m model.Model](model *m)error{
+
+// }
 func getDatabaseNameFromDSN(dsn string) string {
 	// w = without
 	w_user_pass_protocol_ip := dsn[strings.LastIndex(dsn, "/")+1:]

@@ -12,66 +12,56 @@ func SearchBookByTitle_InlineQueryHandler(bot_api *tgbotapi.BotAPI, update *tgbo
 	query := update.InlineQuery.Query
 	// Query is too short
 	if len(query) < 2 {
-		item := tgbotapi.InlineQueryResultArticle{
-			ID:          update.InlineQuery.ID,
-			Title:       ENTERED_PHRASE_IS_TOO_SHORT,
-			Description: AT_LEAST_ENTER_ONE_CHARACTER,
-		}
+		item := tgbotapi.NewInlineQueryResultArticle(update.InlineQuery.ID, ENTERED_PHRASE_IS_TOO_SHORT_ERROR, AT_LEAST_ENTER_ONE_CHARACTER_ERROR)
+		item.Description = AT_LEAST_ENTER_ONE_CHARACTER_ERROR
 		result_config := tgbotapi.InlineConfig{
 			InlineQueryID: update.InlineQuery.ID,
 			IsPersonal:    true,
 			Results:       []interface{}{item},
 		}
 		if _, err := bot_api.Request(result_config); err != nil {
-			SendError(bot_api, update.FromChat().ChatConfig().ChatID)
+			log.Printf("Error occurred during send query is too short for search - %s", err.Error())
 		}
 	} else {
 		// Get books
 		books, err := db_action.SearchBooksByTitle(query)
 		if err != nil {
-			log.Print("Error occurred during search book by title")
-			SendError(bot_api, update.FromChat().ID)
+			log.Printf("Error occurred during search book by title - %s", err.Error())
 		}
 		books_len := len(books)
 		// No result found
 		if books_len == 0 {
-			item := tgbotapi.InlineQueryResultArticle{
-				ID:          update.InlineQuery.ID,
-				Title:       NO_RESULT_FOUND,
-				Description: fmt.Sprintf("برای عبارت %s نتیجه ای یافت نشد.\nعنوان کتاب را بررسی کنید, همچنین امکان دارد کتاب موجود نباشد.", query),
-			}
+			item := tgbotapi.NewInlineQueryResultArticle(update.InlineQuery.ID, NO_RESULT_FOUND_ERROR, fmt.Sprintf(NO_RESULT_FOUND_DESCRIPTION_ERROR, query))
+			item.Description = NO_RESULT_FOUND_DESCRIPTION_ERROR
 			result_config := tgbotapi.InlineConfig{
 				InlineQueryID: update.InlineQuery.ID,
 				IsPersonal:    true,
 				Results:       []interface{}{item},
 			}
 			if _, err := bot_api.Request(result_config); err != nil {
-				SendError(bot_api, update.FromChat().ChatConfig().ChatID)
+				log.Printf("Error occurred during send no found result for sent query - %s", err.Error())
 			}
 			// Some result found
 		} else {
-			var results = make([]tgbotapi.InlineQueryResultArticle, books_len)
-			for i := 0; i > books_len; i++ {
-				censor_state := "بدون سانسور"
-				if books[i].Censored {
-					censor_state = "سانسور شده"
-				}
-				item := tgbotapi.InlineQueryResultArticle{
-					ID:          update.InlineQuery.ID,
-					Title:       fmt.Sprintf("%s (%s)", books[i].Title, books[i].PublishDate.Format("2000-01-01")),
-					Description: fmt.Sprintf("نویسنده: %s\nمترجم: %s\nدسته بندی: %s\nوضعیت سانسور: %s\nانتشارات: %s", books[i].Author, books[i].Translator, books[i].Genre, censor_state, books[i].Publisher),
-				}
-				results = append(results, item)
-			}
 			result_cfg := tgbotapi.InlineConfig{
 				InlineQueryID: update.InlineQuery.ID,
 				IsPersonal:    true,
 				CacheTime:     10,
-				Results:       []interface{}{results},
+				Results:       []interface{}{},
+			}
+			for i := 0; i < books_len; i++ {
+				item := tgbotapi.NewInlineQueryResultArticle(fmt.Sprint(books[i].ID), fmt.Sprintf("%s (%s)", books[i].Title, books[i].Author), fmt.Sprintf(BOT_START_QUERY, bot_api.Self.UserName, books[i].ID))
+				item.Description = fmt.Sprintf("نویسنده: %s\nمترجم: %s\nدسته بندی: %s", books[i].Author, books[i].Translator, books[i].Genre)
+				result_cfg.Results = append(result_cfg.Results, item)
 			}
 			if _, err := bot_api.Request(result_cfg); err != nil {
-				SendError(bot_api, update.FromChat().ChatConfig().ChatID)
+				log.Printf("Error occurred during send query result - %s", err.Error())
 			}
 		}
 	}
+}
+
+// Incomplete
+func SearchBookByTitleForDelete_InlineQueryHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	SearchBookByTitle_InlineQueryHandler(bot_api, update)
 }

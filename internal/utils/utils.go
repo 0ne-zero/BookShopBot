@@ -46,3 +46,11 @@ func IsUserRoot() bool {
 		return false
 	}
 }
+func IsFloatNumberRound(n float64) bool {
+	str_n := fmt.Sprint(n)
+	if strings.Contains(str_n, ".") {
+		return false
+	} else {
+		return true
+	}
+}
