@@ -43,7 +43,55 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	var err error
 	// It's equal to true by default, jsut for enter to below for loop
 	var input_fetched bool = false
+	for !input_fetched {
+		// Send request for book picture
+		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, REQUEST_BOOK_PICTURE)
+		if _, err := bot_api.Send(msg); err != nil {
+			log.Printf("Error occurred during send book picutes request - %s", err.Error())
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		}
+		for inner_update := range *updates {
+			if inner_update.Message.Document != nil {
+				// Extract document/file download url
+				download_url, err := bot_api.GetFileDirectURL(update.Message.Document.FileID)
+				if err != nil {
+					log.Printf("Error occurred during extract document/file download url - %s\n", err.Error())
+					SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+					continue
+				}
+				// Download image
+				pic_path, err := downloadAndSavePhoto(download_url)
+				if err != nil {
+					log.Printf("Error occurred during download and save image - %s", err.Error())
+					SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+				}
+				// Add path to book pictures path
+				book.Pictures = append(book.Pictures, pic_path+"|")
+			} else if inner_update.Message.Photo != nil {
+				// Get every sent photo and remove exif data form them
+				// Each sent photo has four quality, so update.Message.Photo has four item, we need only the last one (original photo)
+				// Extract last item (main item)
+				main_photo_file_id := inner_update.Message.Photo[len(inner_update.Message.Photo)-1].FileID
+				/// Extract document/file download url
+				download_url, err := bot_api.GetFileDirectURL(main_photo_file_id)
+				if err != nil {
+					log.Printf("Error occurred during extract document/file download url - %s\n", err.Error())
+					SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+					continue
+				}
+				// Download image
+				pic_path, err := downloadAndSavePhoto(download_url)
+				if err != nil {
+					log.Printf("Error occurred during download and save image - %s", err.Error())
+					SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+				}
+				// Add path to book pictures path
+				book.Pictures = append(book.Pictures, pic_path+"|")
+			}
+		}
+	}
 	// Get book's title
+	input_fetched = false
 	for !input_fetched {
 		raw_isbn, err := GetInputFromUser(bot_api, update, updates, REQUEST_BOOK_ISBN, addBookUpdateValidateFunc)
 		if err != nil {
@@ -384,6 +432,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 		SendError(bot_api, update.FromChat().ChatConfig().ChatID, BOOK_NOT_SAVED_IN_DATABASE)
 	}
 }
+
 func Admin_DeleteBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
 	// Send search keyboard to user
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, SEARCH_FOR_DELETE_BOOK_MESSAGE_TEXT)
@@ -421,6 +470,9 @@ func Admin_DeleteBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi
 					log.Printf("Error occurred during send book successfuly deleted message")
 					SendError(bot_api, inner_update.FromChat().ChatConfig().ChatID, fmt.Sprintf(BOOK_DELETED_SUCCESSFULY, book_title))
 				}
+				break
+				// User canceled the operation
+			} else if inner_update.CallbackQuery != nil && inner_update.CallbackQuery.Data != "" && inner_update.CallbackQuery.Data == CANCEL_KEYBOARD_ITEM_TITLE {
 				break
 			}
 		}

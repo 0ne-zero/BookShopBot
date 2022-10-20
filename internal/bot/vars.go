@@ -1,7 +1,11 @@
 package bot
 
+import "path/filepath"
+
 const API_KEY = "5360047799:AAE95DZ1rnPnxP5vLbkcOVREYGfPFqARbQs"
 const UNKNOWN_ERROR = "مشکلی پیش امد, دوباره امتحان کنید."
+
+var PICTURES_DIRECTORY = filepath.Join("../pictures/books/")
 
 var BOT_START_QUERY = "https://t.me/%s/?start=%d"
 
@@ -20,6 +24,7 @@ var ENTERED_PHRASE_IS_TOO_SHORT_ERROR = "عبارت وارد شده بیش از 
 var NO_RESULT_FOUND_ERROR = "نتیجه ای یافت نشد."
 var NO_RESULT_FOUND_DESCRIPTION_ERROR = "برای عبارت %s نتیجه ای یافت نشد.\nعنوان کتاب را بررسی کنید, همچنین امکان دارد کتاب موجود نباشد."
 var SEARCH_TEXT = "you can search by pressing below button"
+var REQUEST_BOOK_PICTURE = "عکس های کتاب را در یک پیام ارسال کنید."
 var REQUEST_BOOK_ISBN = "isbn"
 var REQUEST_BOOK_TITLE = "عنوان کتاب را وارد کنید :"
 var REQUEST_BOOK_AUTHOR = "author"

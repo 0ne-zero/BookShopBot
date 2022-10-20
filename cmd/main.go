@@ -11,6 +11,7 @@ import (
 )
 
 var LOG_FILE_PATH = filepath.Join("../log", "log.txt")
+var PICTURES_DIRECTORY = filepath.Join("../pictures/books/")
 
 func main() {
 	db := database.InitializeOrGetDB()

@@ -36,14 +36,16 @@ type Address struct {
 }
 type Book struct {
 	Base
-	ISBN           string
-	Title          string
-	Author         string
-	Translator     string
-	PaperType      string
-	Description    string
-	NumberOfPages  int
-	Genre          string
+	ISBN          string
+	Title         string
+	Author        string
+	Translator    string
+	PaperType     string
+	Description   string
+	NumberOfPages int
+	Genre         string
+	// Pictures seperated with | character
+	Pictures       []string
 	Censored       bool
 	Publisher      string
 	PublishDate    string
