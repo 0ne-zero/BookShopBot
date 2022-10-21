@@ -152,6 +152,14 @@ func makeBookKeyboard(book_id int) *tgbotapi.InlineKeyboardMarkup {
 	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(ADD_BOOK_TO_CART, callback_data)))
 	return &keyboard
 }
+func makeBookExistsInCartKeyboard(book_id int) *tgbotapi.InlineKeyboardMarkup {
+	callback_data := fmt.Sprint(DELETE_BOOK_FROM_CART, "?", book_id)
+	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(DELETE_BOOK_FROM_CART, callback_data)))
+	return &keyboard
+}
+func extractBookIDFromCallbackData(data string) string {
+	return data[strings.LastIndex(data, "?"):]
+}
 func GetInputFromUser(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel, input_request_text string, validate_func validateUserinputFunc) (string, error) {
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, input_request_text)
 	msg.ReplyMarkup = MAIN_MENU_KEYBOARD
