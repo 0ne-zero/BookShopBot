@@ -35,6 +35,16 @@ func Cart_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 func BuyCart_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 }
 func ContactAdmin_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, CONTACT_TO_ADMIN_MESSAGE)
+	var err error
+	msg.ReplyMarkup, err = makeContactToAdminInlineKeyboard()
+	if err != nil {
+		log.Printf("Error occurred during make contact to admin inline keyboard - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+	}
+	if _, err := bot_api.Send(msg); err != nil {
+		log.Printf("Error occurred during send contact to admin message - %s", err.Error())
+	}
 }
 func SetAddress_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
 	var addr model.Address

@@ -67,7 +67,7 @@ func DeleteBookFromCart_InlineKeyboardHandler(bot_api *tgbotapi.BotAPI, update *
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 		return
 	}
-	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, fmt.Sprintf(BOOK_DELETED_FROM_CART, book_name))
+	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, fmt.Sprintf(BOOK_DELETED_FROM_CART_FORMAT, book_name))
 	if _, err := bot_api.Send(msg); err != nil {
 		log.Printf("Error occurred during send book deleted form cart message - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
