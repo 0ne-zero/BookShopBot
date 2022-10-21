@@ -11,6 +11,7 @@ import (
 	db_action "github.com/0ne-zero/BookShopBot/internal/database/action"
 	"github.com/0ne-zero/BookShopBot/internal/database/model"
 	"github.com/0ne-zero/BookShopBot/internal/utils"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 var LOG_FILE_PATH = filepath.Join("../log", "log.txt")
@@ -84,48 +85,9 @@ func main() {
 					bot.SearchBookByTitle_InlineQueryHandler(bot_api, &update)
 				}
 			}
-			if update.Message == nil {
-				continue
-			}
-			if update.Message.Text != "" {
-				// Is command
-				if bot.IsCommand(update.Message.Text) {
-					switch update.Message.Text {
-					case "/start":
-						// Admin start command handler (admin panel)
-						bot.Admin_Start_CommandHandler(bot_api, &update)
-					}
-				}
-				// Handle start query
-				if bot.IsStartQuery(update.Message.Text) {
-					bot.StartQueryHandler(bot_api, &update)
-				}
-				switch update.Message.Text {
-				// Back to main menu (admin panel) handler
-				case bot.MAIN_MENU_ITEM_TITLE:
-					bot.BackToMainMenu(bot_api, &update)
-					// Add book handler
-				case bot.ADMIN_ADD_BOOK_KEYBOARD_ITEM_TITLE:
-					bot.Admin_AddBook_KeyboardHandler(bot_api, &update, &updates)
-					// Delete book handler
-				case bot.ADMIN_DELETE_BOOK_KEYBOARD_ITEM_TITLE:
-					bot.Admin_DeleteBook_KeyboardHandler(bot_api, &update, &updates)
-					// Confirm orders handler
-				case bot.ADMIN_CONFIRM_ORDERS_KEYBOARD_ITEM_TITLE:
-					bot.Admin_ConfirmOrders_KeyboardHandler(bot_api, &update)
-					// Statistics handler
-				case bot.ADMIN_STATISTICS_KEYBOARD_ITEM_TITLE:
-					bot.Admin_Statistics_KeyboardHandler(bot_api, &update)
-					// Back to admin user panel handler
-				case bot.ADMIN_BACK_TO_USER_PANEL_ITEM_TITLE:
-					bot.Admin_BackToUserPanel_KeyboardHandler(bot_api, &update)
-					// Back to admin panel handler
-				case bot.ADMIN_BACK_TO_ADMIN_PANEL_ITEM_TITLE:
-					bot.Admin_BackToAdminPanel_KeyboardHandler(bot_api, &update)
-					// Go to search book (inline query mode)
-				case bot.SEARCH_BOOK_KEYBOARD_ITEM_TITLE:
-					bot.SearchBookByTitle_KeyboardHandler(bot_api, &update)
-				}
+
+			if update.Message == nil && update.Message.Text != "" {
+				admin_Message_Text_Handler(bot_api, &update, &updates)
 			}
 			// User is normal user
 		} else {
@@ -133,36 +95,86 @@ func main() {
 			if update.InlineQuery != nil && update.InlineQuery.Query != "" {
 				bot.SearchBookByTitle_InlineQueryHandler(bot_api, &update)
 			}
-			if update.Message == nil {
-				continue
-			}
-			if bot.IsStartQuery(update.Message.Text) {
-				bot.StartQueryHandler(bot_api, &update)
-			}
-			if update.Message.Text != "" {
-				// Is a command
-				if bot.IsCommand(update.Message.Text) {
-					switch update.Message.Text {
-					// User start command handler
-					case "/start":
-						bot.Start_CommandHandler(bot_api, &update)
-					}
-				}
-				switch update.Message.Text {
-				// Go to search book (inline query mode)
-				case bot.SEARCH_BOOK_KEYBOARD_ITEM_TITLE:
-					bot.SearchBookByTitle_KeyboardHandler(bot_api, &update)
-					// Show cart handler
-				case bot.CART_KEYBOARD_ITEM_TITLE:
-					bot.Cart_KeyboardHandler(bot_api, &update)
-					// Buy cart handler
-				case bot.BUY_CART_KEYBOARD_ITEM_TITLE:
-					bot.BuyCart_KeyboardHandler(bot_api, &update)
-					// Contact to admin handler
-				case bot.CONTACT_ADMIN_KEYBOARD_ITEM_TITLE:
-					bot.ContactAdmin_KeyboardHandler(bot_api, &update)
-				}
+
+			if update.Message == nil && update.Message.Text != "" {
+				user_Message_Text_Handler(bot_api, &update, &updates)
 			}
 		}
+	}
+}
+
+func user_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
+	// Is a start query (book search)
+	if bot.IsStartQuery(update.Message.Text) {
+		bot.StartQueryHandler(bot_api, update)
+	}
+
+	// Is a command
+	if bot.IsCommand(update.Message.Text) {
+		switch update.Message.Text {
+		// User, start command handler
+		case "/start":
+			bot.Start_CommandHandler(bot_api, update)
+		}
+	}
+	switch update.Message.Text {
+	// Go to search book (inline query mode)
+	case bot.SEARCH_BOOK_KEYBOARD_ITEM_TITLE:
+		bot.SearchBookByTitle_KeyboardHandler(bot_api, update)
+		// Show cart handler
+	case bot.CART_KEYBOARD_ITEM_TITLE:
+		bot.Cart_KeyboardHandler(bot_api, update)
+		// Buy cart handler
+	case bot.BUY_CART_KEYBOARD_ITEM_TITLE:
+		bot.BuyCart_KeyboardHandler(bot_api, update)
+		// Contact to admin handler
+	case bot.CONTACT_ADMIN_KEYBOARD_ITEM_TITLE:
+		bot.ContactAdmin_KeyboardHandler(bot_api, update)
+		// Set address handler
+	case bot.SET_ADDRESS_KEYBOARD_ITEM_TITLE:
+		bot.SetAddress_KeyboardHandler(bot_api, update, updates)
+	}
+}
+func admin_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
+	// Is command
+	if bot.IsCommand(update.Message.Text) {
+		switch update.Message.Text {
+		case "/start":
+			// Admin start command handler (admin panel)
+			bot.Admin_Start_CommandHandler(bot_api, update)
+		}
+	}
+	// Handle start query
+	if bot.IsStartQuery(update.Message.Text) {
+		bot.StartQueryHandler(bot_api, update)
+	}
+	switch update.Message.Text {
+	// Back to main menu (admin panel) handler
+	case bot.MAIN_MENU_ITEM_TITLE:
+		bot.BackToMainMenu(bot_api, update)
+		// Add book handler
+	case bot.ADMIN_ADD_BOOK_KEYBOARD_ITEM_TITLE:
+		bot.Admin_AddBook_KeyboardHandler(bot_api, update, updates)
+		// Delete book handler
+	case bot.ADMIN_DELETE_BOOK_KEYBOARD_ITEM_TITLE:
+		bot.Admin_DeleteBook_KeyboardHandler(bot_api, update, updates)
+		// Confirm orders handler
+	case bot.ADMIN_CONFIRM_ORDERS_KEYBOARD_ITEM_TITLE:
+		bot.Admin_ConfirmOrders_KeyboardHandler(bot_api, update)
+		// Statistics handler
+	case bot.ADMIN_STATISTICS_KEYBOARD_ITEM_TITLE:
+		bot.Admin_Statistics_KeyboardHandler(bot_api, update)
+		// Back to admin user panel handler
+	case bot.ADMIN_BACK_TO_USER_PANEL_ITEM_TITLE:
+		bot.Admin_BackToUserPanel_KeyboardHandler(bot_api, update)
+		// Back to admin panel handler
+	case bot.ADMIN_BACK_TO_ADMIN_PANEL_ITEM_TITLE:
+		bot.Admin_BackToAdminPanel_KeyboardHandler(bot_api, update)
+		// Go to search book (inline query mode)
+	case bot.SEARCH_BOOK_KEYBOARD_ITEM_TITLE:
+		bot.SearchBookByTitle_KeyboardHandler(bot_api, update)
+		// Go to set address
+	case bot.SET_ADDRESS_KEYBOARD_ITEM_TITLE:
+		bot.SetAddress_KeyboardHandler(bot_api, update, updates)
 	}
 }
