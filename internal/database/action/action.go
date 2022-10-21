@@ -11,6 +11,22 @@ type Models interface {
 	model.User | model.Book | model.BookAgeCategory | model.BookCoverType | model.BookSize | model.Address | model.Order | model.OrderStatus | model.Cart | model.CartItem
 }
 
+func AddUser(u *model.User) error {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	return db.Create(u).Error
+}
+func IsUserExistsByTelegramUserID(user_id string) (bool, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var exists bool
+	err := db.Model(&model.User{}).Select("count(*) > 0").Where("telegram_user_id = ?", user_id).Scan(&exists).Error
+	return exists, err
+}
 func AddBook(b *model.Book) error {
 	db := database.InitializeOrGetDB()
 	if db == nil {

@@ -66,7 +66,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 					SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 				}
 				// Add path to book pictures path
-				book.Pictures = append(book.Pictures, pic_path+"|")
+				book.Pictures += pic_path + "|"
 			} else if inner_update.Message.Photo != nil {
 				// Get every sent photo and remove exif data form them
 				// Each sent photo has four quality, so update.Message.Photo has four item, we need only the last one (original photo)
@@ -86,7 +86,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 					SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 				}
 				// Add path to book pictures path
-				book.Pictures = append(book.Pictures, pic_path+"|")
+				book.Pictures += pic_path + "|"
 			}
 		}
 	}

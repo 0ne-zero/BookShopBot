@@ -1,17 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"path/filepath"
 	"strings"
 
 	"github.com/0ne-zero/BookShopBot/internal/bot"
 	"github.com/0ne-zero/BookShopBot/internal/database"
+	db_action "github.com/0ne-zero/BookShopBot/internal/database/action"
+	"github.com/0ne-zero/BookShopBot/internal/database/model"
 	"github.com/0ne-zero/BookShopBot/internal/utils"
 )
 
 var LOG_FILE_PATH = filepath.Join("../log", "log.txt")
-var PICTURES_DIRECTORY = filepath.Join("../pictures/books/")
 
 func main() {
 	db := database.InitializeOrGetDB()
@@ -40,16 +42,27 @@ func main() {
 	// Create bot
 	// Config how to update messages
 	bot_api, updates, err := bot.ConfigBot()
-
 	if err != nil {
 		log.Fatalf("Error occurred during config bot - %s\n", err.Error())
 	}
-
+	bot.BOT_USERNAME = bot_api.Self.UserName
 	log.Printf("Authorized on account %s\n", bot_api.Self.UserName)
 
 	// Updates(Events) Handler
 	for update := range updates {
-
+		// Add user to database (If not exists)
+		if from := update.SentFrom(); from != nil {
+			user_id_str := fmt.Sprint(from.ID)
+			is_exists, err := db_action.IsUserExistsByTelegramUserID(user_id_str)
+			if err != nil {
+				log.Printf("Error occurred during check user already exists in database - %s", err.Error())
+			} else if !is_exists {
+				err := db_action.AddUser(&model.User{TelegramUserID: user_id_str, TelegramUsername: from.UserName})
+				if err != nil {
+					log.Printf("Error occurred during add user to database - %s", err.Error())
+				}
+			}
+		}
 		// Is admin
 		if bot.IsAdmin(&update) {
 			// User is admin
@@ -112,6 +125,9 @@ func main() {
 			}
 			if update.Message == nil {
 				continue
+			}
+			if bot.IsStartQuery(update.Message.Text) {
+				bot.StartQueryHandler(bot_api, &update)
 			}
 			if update.Message.Text != "" {
 				// Is a command

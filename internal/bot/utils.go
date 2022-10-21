@@ -172,6 +172,8 @@ func IsStartQuery(text string) bool {
 		return false
 	}
 }
+
+// Start query handler, gets the book id and returns its information
 func StartQueryHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	// Extract book id from query
 	book_id, err := extractBookIDFromStartQuery(update.Message.Text)
@@ -206,10 +208,16 @@ func formatBookInformation(book_id int) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	var censor_status string
+	if book.Censored {
+		censor_status = "سانسور شده"
+	} else {
+		censor_status = "بدون سانسور"
+	}
 	formatted_info := fmt.Sprintf(
 		BOOK_INFORMATION_FORMAT, book.Title, book.Author, book.Translator, book.NumberOfPages, book.Genre,
-		book.Censored, book.CoverType.Type, book.BookSize.Name, book.BookAgeCategory.Category, book.GoodReadsScore,
-		book.ArezoScore, book.Publisher, book.PublishDate, book.ISBN, book.Price)
+		censor_status, book.CoverType.Type, book.BookSize.Name, book.BookAgeCategory.Category, fmt.Sprint(book.GoodReadsScore),
+		fmt.Sprint(book.ArezoScore), book.Publisher, book.PublishDate, book.ISBN, fmt.Sprint(book.Price), BOT_USERNAME)
 	return formatted_info, nil
 }
 func GetGoodreadsScoreByISBN(isbn string) (string, error) {
