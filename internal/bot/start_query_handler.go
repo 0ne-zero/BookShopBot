@@ -35,7 +35,7 @@ func StartQueryHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	// Select keyboard for book
 	// If exists in user cart, keyboard should have option to remove it from the cart
-	// If not exists in user cart keyboard should have option to add it to the cart
+	// If doesn't exists in user cart keyboard should have option to add it to the cart
 	if exists, err := db_action.IsBookExistsInCart(book_id, cart_id); err != nil {
 		log.Printf("Error occurred during check book exists in cart - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
