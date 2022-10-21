@@ -13,8 +13,8 @@ type Base struct {
 }
 type User struct {
 	Base
-	TelegramUsername string
-	TelegramUserID   string
+	TelegramUsername string `gorm:"NOT NULL;"`
+	TelegramUserID   string `gorm:"NOT NULL;"`
 	// User has one Address
 	Address Address
 	// User has one Cart
@@ -25,59 +25,60 @@ type User struct {
 type Address struct {
 	Base
 	Country        string `gorm:"NOT NULL;"`
-	Province       string
+	Province       string `gorm:"NOT NULL;"`
 	City           string `gorm:"NOT NULL;"`
 	Street         string `gorm:"NOT NULL;"`
 	BuildingNumber string `gorm:"NOT NULL;"`
-	PostalCode     string
-	Description    string
+	PostalCode     string `gorm:"NOT NULL;"`
+	Description    string `gorm:"NOT NULL;"`
+	PhoneNumber    string `gorm:"NOT NULL;"`
 	// Address has one User
 	UserID uint `gorm:"NOT NULL;"`
 }
 type Book struct {
 	Base
 	ISBN          string
-	Title         string
-	Author        string
-	Translator    string
-	PaperType     string
-	Description   string
-	NumberOfPages int
-	Genre         string
+	Title         string `gorm:"NOT NULL;"`
+	Author        string `gorm:"NOT NULL;"`
+	Translator    string `gorm:"NOT NULL;"`
+	PaperType     string `gorm:"NOT NULL;"`
+	Description   string `gorm:"NOT NULL;"`
+	NumberOfPages int    `gorm:"NOT NULL;"`
+	Genre         string `gorm:"NOT NULL;"`
 	// Pictures seperated with | character
 	Pictures       string
-	Censored       bool
-	Publisher      string
-	PublishDate    string
-	Price          float64
-	GoodReadsScore float32
-	ArezoScore     float32
+	Censored       bool    `gorm:"NOT NULL;"`
+	Publisher      string  `gorm:"NOT NULL;"`
+	PublishDate    string  `gorm:"NOT NULL;"`
+	Price          float64 `gorm:"NOT NULL;"`
+	GoodReadsScore float32 `gorm:"NOT NULL;"`
+	ArezoScore     float32 `gorm:"NOT NULL;"`
 
 	// Book has many BookCoverTypes
 	CoverType       *BookCoverType `gorm:"foreignkey:BookCoverTypeID"`
-	BookCoverTypeID int
+	BookCoverTypeID int            `gorm:"NOT NULL;"`
 	// Book has many BookSize
 	BookSize   *BookSize `gorm:"foreignkey:BookSizeID"`
-	BookSizeID int
+	BookSizeID int       `gorm:"NOT NULL;"`
 	// Book has one BookAgeCategory
-	BookAgeCategoryID int
 	BookAgeCategory   *BookAgeCategory `gorm:"foreignkey:BookAgeCategoryID"`
+	BookAgeCategoryID int              `gorm:"NOT NULL;"`
 }
 type BookCoverType struct {
 	Base
-	Type string
+	Type string `gorm:"NOT NULL;"`
 	// BookCoverType has many Book
 	Books []*Book
 }
 type BookSize struct {
 	Base
-	Name string
+	Name string `gorm:"NOT NULL;"`
 	// BookSize has many Book
 	Books []*Book
 }
 type BookAgeCategory struct {
 	Base
-	Category string
+	Category string `gorm:"NOT NULL;"`
 	// BookAgeCategory has many Book
 	Books []*Book
 }
@@ -87,9 +88,9 @@ type Order struct {
 	Base
 	// Order has one Cart
 	Cart   *Cart
-	CartID uint
+	CartID uint `gorm:"NOT NULL;"`
 	// Order has one User
-	UserID uint
+	UserID uint `gorm:"NOT NULL;"`
 	// Order has one OrderStatus
 	OrderStatusID uint `gorm:"NOT NULL;"`
 }

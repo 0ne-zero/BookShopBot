@@ -45,6 +45,15 @@ var REQUEST_BOOK_COVERTYPE = "select cover type"
 var REQUEST_BOOK_SIZE = "select book size"
 var REQUEST_BOOK_AGE_CATEGORY = "select age category"
 
+// Address
+var REQUEST_ADDRESS_COUNTRY = "کدام کشور هستید؟"
+var REQUEST_ADDRESS_PROVINCE = "کدام استان هستید؟"
+var REQUEST_ADDRESS_CITY = "کدام شهر هستید؟"
+var REQUEST_ADDRESS_STREET = "کدام خیابان/کوچه هستید؟"
+var REQUEST_ADDRESS_BUILDING_NUMBER = "کدام نام/شماره ساختمان هستید؟"
+var REQUEST_ADDRESS_POSTAL_CODE = "کد پستی شما چیست؟"
+var REQUEST_ADDRESS_DESCRIPTION = "میتوانید توضیحاتی را اینجا بنویسید!"
+var REQUEST_ADDRESS_PHONE_NUMBER = "شماره همراهتان را بنویسید"
 var BOOK_INFORMATION_FORMAT = "عنوان: %s\nنویسنده: %s\nمترجم: %s\nتعداد صفحات: %d\nدسته بندی: %s\nوضعیت سانسور: %s\nنوع جلد: %s\nسایز: %s\nرده سنی: %s\nامتیاز گودریدز: %s\nامتیاز ارزو: %s\nانتشارات: %s\nتاریخ انتشار: %s\nشابک: %s\nقیمت: %s\n\n@%s"
 var BOOK_DELETED_SUCCESSFULY = "کتاب %s حدف شد."
 
