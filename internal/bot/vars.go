@@ -58,5 +58,7 @@ var BOOK_INFORMATION_FORMAT = "عنوان: %s\nنویسنده: %s\nمترجم: %
 var BOOK_DELETED_SUCCESSFULY = "کتاب %s حدف شد."
 
 var ADD_BOOK_TO_CART = "اضافه کردن به سبد خرید"
-var BOOK_NOT_ADDED_TO_CART_SUCCESSFULY = "کتاب به سبد حرید اضافه نشد."
+var DELETE_BOOK_FROM_CART = "حدف از سبد خرید"
+var BOOK_DELETED_FROM_CART = "کتاب %s از سبد خرید حذف شد."
+var BOOK_NOT_ADDED_TO_CART = "کتاب به سبد حرید اضافه نشد."
 var BOOK_ADDED_TO_CART_SUCCESSFULY = "کتاب به سبد خرید اضافه شد."

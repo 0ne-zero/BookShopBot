@@ -27,6 +27,18 @@ func GetUserCartIDByTelegramUserID(telegram_user_id int) (int, error) {
 	err := db.Model(&model.Cart{}).Select("id").Where("user_id = ?", telegram_user_id).Scan(&cart_id).Error
 	return cart_id, err
 }
+func DeleteBookFromCart(book_id, cart_id int) error {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	cart_item := &model.CartItem{
+		BookID:       uint(book_id),
+		CartID:       uint(cart_id),
+		BookQuantity: 1,
+	}
+	return db.Delete(cart_item).Error
+}
 func IsUserExistsByTelegramUserID(user_id string) (bool, error) {
 	db := database.InitializeOrGetDB()
 	if db == nil {
@@ -34,6 +46,15 @@ func IsUserExistsByTelegramUserID(user_id string) (bool, error) {
 	}
 	var exists bool
 	err := db.Model(&model.User{}).Select("count(*) > 0").Where("telegram_user_id = ?", user_id).Scan(&exists).Error
+	return exists, err
+}
+func IsBookExistsInCart(book_id, cart_id int) (bool, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var exists bool
+	err := db.Model(&model.CartItem{}).Select("count(*) > 0").Where("cart_id = ? AND book_id = ?", cart_id, book_id).Scan(&exists).Error
 	return exists, err
 }
 func AddBook(b *model.Book) error {
