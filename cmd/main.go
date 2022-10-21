@@ -63,6 +63,16 @@ func main() {
 				}
 			}
 		}
+		// Public operations
+		// Inline keyboard (call back query) handlers
+		if update.CallbackQuery != nil && update.CallbackQuery.Data != "" {
+			// Alias for call back data
+			data := &update.CallbackQuery.Data
+			switch {
+			case strings.Contains(*data, bot.ADD_BOOK_TO_CART):
+				bot.AddBookToCart_InlineKeyboardHandler(bot_api, &update)
+			}
+		}
 		// Is admin
 		if bot.IsAdmin(&update) {
 			// User is admin

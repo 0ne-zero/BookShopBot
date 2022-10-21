@@ -277,7 +277,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	input_fetched = false
 	for !input_fetched {
 		// Get cover types from database and create keyboard
-		keyboard, err := MakeBookCoverTypesKeyboard()
+		keyboard, err := makeBookCoverTypesKeyboard()
 		if err != nil {
 			log.Printf("Error occurred during make book cover type keyboard - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -319,7 +319,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	// Get book's size
 	input_fetched = false
 	for !input_fetched {
-		keyboard, err := MakeBookSizeKeyboard()
+		keyboard, err := makeBookSizeKeyboard()
 		if err != nil {
 			log.Printf("Error occurred during make book size keyboard - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -360,7 +360,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	// Get book's age category
 	input_fetched = false
 	for !input_fetched {
-		keyboard, err := MakeBookAgeCategoryKeyboard()
+		keyboard, err := makeBookAgeCategoryKeyboard()
 		if err != nil {
 			log.Printf("Error occurred during make age category keyboard - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)

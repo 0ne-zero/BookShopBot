@@ -54,7 +54,7 @@ func SendError(bot *tgbotapi.BotAPI, chat_id int64, error_text string) {
 func IsCommand(text string) bool {
 	return strings.HasPrefix(text, "/")
 }
-func MakeBookCoverTypesKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
+func makeBookCoverTypesKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
 	types, err := db_action.GetBookCoverTypes()
 	if err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func MakeBookCoverTypesKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
 	)
 	return &keyboard, nil
 }
-func MakeBookSizeKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
+func makeBookSizeKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
 	sizes, err := db_action.GetBookSize()
 	if err != nil {
 		return nil, err
@@ -108,7 +108,7 @@ func MakeBookSizeKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
 	var keyboard = tgbotapi.NewInlineKeyboardMarkup(rows...)
 	return &keyboard, nil
 }
-func MakeBookAgeCategoryKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
+func makeBookAgeCategoryKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
 	categories, err := db_action.GetBookAgeCategories()
 	if err != nil {
 		return nil, err
@@ -146,6 +146,11 @@ func MakeBookAgeCategoryKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
 	}
 	var keyboard = tgbotapi.NewInlineKeyboardMarkup(rows...)
 	return &keyboard, nil
+}
+func makeBookKeyboard(book_id int) *tgbotapi.InlineKeyboardMarkup {
+	callback_data := fmt.Sprint(ADD_BOOK_TO_CART, "?", book_id)
+	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(ADD_BOOK_TO_CART, callback_data)))
+	return &keyboard
 }
 func GetInputFromUser(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel, input_request_text string, validate_func validateUserinputFunc) (string, error) {
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, input_request_text)
