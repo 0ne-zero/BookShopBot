@@ -72,6 +72,8 @@ func main() {
 			switch {
 			case strings.Contains(*data, bot.ADD_BOOK_TO_CART):
 				bot.AddBookToCart_InlineKeyboardHandler(bot_api, &update)
+			case strings.Contains(*data, bot.DELETE_BOOK_FROM_CART):
+				bot.DeleteBookFromCart_InlineKeyboardHandler(bot_api, &update)
 			}
 		}
 		// Is admin
