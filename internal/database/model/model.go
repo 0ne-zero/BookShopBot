@@ -45,7 +45,7 @@ type Book struct {
 	NumberOfPages int
 	Genre         string
 	// Pictures seperated with | character
-	Pictures       []string
+	Pictures       string
 	Censored       bool
 	Publisher      string
 	PublishDate    string

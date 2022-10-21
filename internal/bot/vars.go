@@ -3,6 +3,9 @@ package bot
 import "path/filepath"
 
 const API_KEY = "5360047799:AAE95DZ1rnPnxP5vLbkcOVREYGfPFqARbQs"
+
+var BOT_USERNAME = ""
+
 const UNKNOWN_ERROR = "مشکلی پیش امد, دوباره امتحان کنید."
 
 var PICTURES_DIRECTORY = filepath.Join("../pictures/books/")
@@ -42,5 +45,5 @@ var REQUEST_BOOK_COVERTYPE = "select cover type"
 var REQUEST_BOOK_SIZE = "select book size"
 var REQUEST_BOOK_AGE_CATEGORY = "select age category"
 
-var BOOK_INFORMATION_FORMAT = "عنوان: %s\nنویسنده: %s\nمترجم: %s\nتعداد صفحات: %s\nدسته بندی: %s\nوضعیت سانسور: %s\nنوع جلد: %s\nسایز: %s\nرده سنی: %s\nامتیاز گودریدز: %s\nامتیاز ارزو: %s\nانتشارات: %s\nتاریخ انتشار: %s\nشابک(ISBN): %s\n\n\nقیمت: %s"
+var BOOK_INFORMATION_FORMAT = "عنوان: %s\nنویسنده: %s\nمترجم: %s\nتعداد صفحات: %d\nدسته بندی: %s\nوضعیت سانسور: %s\nنوع جلد: %s\nسایز: %s\nرده سنی: %s\nامتیاز گودریدز: %s\nامتیاز ارزو: %s\nانتشارات: %s\nتاریخ انتشار: %s\nشابک: %s\nقیمت: %s\n\n@%s"
 var BOOK_DELETED_SUCCESSFULY = "کتاب %s حدف شد."
