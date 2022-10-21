@@ -23,7 +23,7 @@ func StartQueryHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 	// Send result
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, book_formatted_info)
-	msg.ReplyMarkup = nil
+	msg.ReplyMarkup = makeBookKeyboard(book_id)
 	if update.Message != nil && update.Message.MessageID != 0 {
 		msg.ReplyToMessageID = update.Message.MessageID
 	}

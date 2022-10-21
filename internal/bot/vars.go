@@ -47,3 +47,7 @@ var REQUEST_BOOK_AGE_CATEGORY = "select age category"
 
 var BOOK_INFORMATION_FORMAT = "عنوان: %s\nنویسنده: %s\nمترجم: %s\nتعداد صفحات: %d\nدسته بندی: %s\nوضعیت سانسور: %s\nنوع جلد: %s\nسایز: %s\nرده سنی: %s\nامتیاز گودریدز: %s\nامتیاز ارزو: %s\nانتشارات: %s\nتاریخ انتشار: %s\nشابک: %s\nقیمت: %s\n\n@%s"
 var BOOK_DELETED_SUCCESSFULY = "کتاب %s حدف شد."
+
+var ADD_BOOK_TO_CART = "اضافه کردن به سبد خرید"
+var BOOK_NOT_ADDED_TO_CART_SUCCESSFULY = "کتاب به سبد حرید اضافه نشد."
+var BOOK_ADDED_TO_CART_SUCCESSFULY = "کتاب به سبد خرید اضافه شد."
