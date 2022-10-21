@@ -157,6 +157,15 @@ func makeBookExistsInCartKeyboard(book_id int) *tgbotapi.InlineKeyboardMarkup {
 	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(DELETE_BOOK_FROM_CART, callback_data)))
 	return &keyboard
 }
+func makeContactToAdminInlineKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
+	admin_username := setting.ReadFieldInSettingData("ADMIN_TELEGRAM_USERNAME")
+	if admin_username == "" {
+		log.Printf("Error occurred during read ADMIN_TELEGRAM_USERNAME field from setting file - Field is empty")
+		return nil, fmt.Errorf("error occurred during read ADMIN_TELEGRAM_USERNAME field from setting file - Field is empty")
+	}
+	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonURL(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE, fmt.Sprintf(SWITCH_TO_PV_FORMAT, admin_username))))
+	return &keyboard, nil
+}
 func extractBookIDFromCallbackData(data string) string {
 	return data[strings.LastIndex(data, "?"):]
 }

@@ -74,6 +74,8 @@ func main() {
 				bot.AddBookToCart_InlineKeyboardHandler(bot_api, &update)
 			case strings.Contains(*data, bot.DELETE_BOOK_FROM_CART):
 				bot.DeleteBookFromCart_InlineKeyboardHandler(bot_api, &update)
+			case *data == bot.CONTACT_ADMIN_KEYBOARD_ITEM_TITLE:
+
 			}
 		}
 		// Is admin
@@ -87,10 +89,10 @@ func main() {
 					bot.SearchBookByTitle_InlineQueryHandler(bot_api, &update)
 				}
 			}
-
-			if update.Message == nil && update.Message.Text != "" {
+			if update.Message != nil && update.Message.Text != "" {
 				admin_Message_Text_Handler(bot_api, &update, &updates)
 			}
+
 			// User is normal user
 		} else {
 			// Is a inline query
@@ -178,5 +180,8 @@ func admin_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Updat
 		// Go to set address
 	case bot.SET_ADDRESS_KEYBOARD_ITEM_TITLE:
 		bot.SetAddress_KeyboardHandler(bot_api, update, updates)
+		// Contact to admin handler
+	case bot.CONTACT_ADMIN_KEYBOARD_ITEM_TITLE:
+		bot.ContactAdmin_KeyboardHandler(bot_api, update)
 	}
 }
