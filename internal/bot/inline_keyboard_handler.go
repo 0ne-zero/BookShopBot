@@ -73,3 +73,34 @@ func DeleteBookFromCart_InlineKeyboardHandler(bot_api *tgbotapi.BotAPI, update *
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 	}
 }
+func BuyCart_InlineKeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	// Check does user have address
+	if have_address, err := db_action.DoesUserHaveAddress(int(update.SentFrom().ID)); err != nil {
+		log.Printf("Error occurred during checking does user have address - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		// User have address
+	} else if have_address {
+		message, err := makeBuyCartMessage(int(update.SentFrom().ID))
+		if err != nil {
+			log.Fatalf("Error occurred during make buy cart message - %s", err.Error())
+		}
+		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
+		msg.ParseMode = "html"
+		if _, err := bot_api.Send(msg); err != nil {
+			log.Printf("Error occurred during send buy cart message to user - %s", err.Error())
+			SendUnknownError(bot_api, update.CallbackQuery.Message.MigrateFromChatID)
+		}
+		// User doesn't have address
+	} else {
+		// Send user that you haven't address and you should set one
+		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, YOU_HAVE_NOT_ADDRESS_INLINE_KEYBOARD_MESSAGE)
+		msg.ReplyMarkup = SET_ADDRESS_INLINE_KEYBOARD
+		if _, err := bot_api.Send(msg); err != nil {
+			log.Printf("Error occurred during send you don't have address message - %s", err.Error())
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		}
+	}
+}
+func SetAddress_InlineKeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
+	SetAddress_KeyboardHandler(bot_api, update, updates)
+}

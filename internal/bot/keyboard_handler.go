@@ -31,8 +31,34 @@ func SearchBookByTitle_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotap
 	}
 }
 func Cart_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
-}
-func BuyCart_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	// Check user cart is empty
+	if empty, err := db_action.IsUserCartEmptyByUserTelegramID(int(update.SentFrom().ID)); err != nil {
+		log.Printf("Error occurred during check user cart is empty - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		// User cart is empty
+	} else if empty {
+		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, CART_IS_EMPTY)
+		if _, err := bot_api.Send(msg); err != nil {
+			log.Printf("Error occurred during send cart is empty message - %s", err.Error())
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		}
+		// User cart isn't empty
+	} else {
+		// Create cart message
+		message, err := makeCartMessage(int(update.SentFrom().ID))
+		if err != nil {
+			log.Printf("Error occurred during make buy cart message - %s", err.Error())
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		}
+		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
+		msg.ReplyMarkup = BUY_CART_INLINE_KEYBOARD
+		msg.ParseMode = "html"
+		if _, err := bot_api.Send(msg); err != nil {
+			log.Printf("Error occurred during send show cart message - %s", err.Error())
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		}
+	}
+
 }
 func ContactAdmin_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, CONTACT_TO_ADMIN_MESSAGE)
@@ -71,7 +97,7 @@ func SetAddress_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Updat
 		}
 		message += fmt.Sprintf(SHOW_USER_ADDRESS_FORMATTED, exists_addr.Country, exists_addr.Province, exists_addr.City, exists_addr.Street, exists_addr.BuildingNumber, exists_addr.PostalCode, exists_addr.PhoneNumber, exists_addr.Description)
 		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
-		msg.ReplyMarkup = FOR_EDIT_ADDRESS_KEYBOARD
+		msg.ReplyMarkup = FOR_EDIT_ADDRESS_INLINE_KEYBOARD
 		// Send edit address message
 		if _, err = bot_api.Send(msg); err != nil {
 			log.Printf("Error occureed during send user address for edit message - %s", err.Error())
@@ -360,7 +386,8 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 			continue
 		}
-		book.Price, err = strconv.ParseFloat(price_str, 32)
+		price_float64, err := strconv.ParseFloat(price_str, 32)
+		book.Price = float32(price_float64)
 		if err != nil {
 			log.Printf("Entered non-float value for price- %s", err.Error())
 			SendError(bot_api, update.FromChat().ChatConfig().ChatID, ENTERED_NON_NUMBER_VALUE_ERROR)
@@ -515,7 +542,8 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 			continue
 		}
-		book.Price, err = strconv.ParseFloat(price_str, 32)
+		price_float64, err := strconv.ParseFloat(price_str, 32)
+		book.Price = float32(price_float64)
 		if err != nil {
 			log.Printf("Entered non-float value for price- %s", err.Error())
 			SendError(bot_api, update.FromChat().ChatConfig().ChatID, ENTERED_VALUE_IS_INVALID_ERROR)

@@ -168,7 +168,7 @@ func makeContactToAdminInlineKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) 
 	return &keyboard, nil
 }
 func extractBookIDFromCallbackData(data string) string {
-	return data[strings.LastIndex(data, "?"):]
+	return data[strings.LastIndex(data, "?")+1:]
 }
 func getInputFromUser(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel, input_request_text string, validate_func validateUserinputFunc) (string, error) {
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, input_request_text)
@@ -317,9 +317,6 @@ func downloadAndSavePhoto(download_url string) (string, error) {
 	}
 	return pic_path, nil
 }
-func calculateShipmentCost(cart_cost float32, shipment_weight float32) (float32, error) {
-	return 0, nil
-}
 func getUserAddressInformationFromUser(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) (*model.Address, error) {
 	var addr model.Address
 	var err error
@@ -407,14 +404,15 @@ func getUserAddressInformationFromUser(bot_api *tgbotapi.BotAPI, update *tgbotap
 	return &addr, nil
 }
 
-func makeCartMessage(telegram_user_id int) (string, error) {
+func makeCartMessage(user_telegram_id int) (string, error) {
 	var message string
 	// Add message header
 	message += CART_MESSAGE_HEADER + "\n\n"
 	message = "محتویات سبد خرید:\n"
 	// Get user cart books id
-	books_id, err := db_action.GetUserCartBooksID(telegram_user_id)
+	books_id, err := db_action.GetUserCartBooksID(user_telegram_id)
 	if err != nil {
+		log.Printf("Error occurred during get user cart books id - %s", err.Error())
 		return "", nil
 	}
 	// Show contents of cart
@@ -422,15 +420,82 @@ func makeCartMessage(telegram_user_id int) (string, error) {
 		// Get book name
 		book_name, err := db_action.GetBookTitleByID(books_id[i])
 		if err != nil {
+			log.Printf("Error occurred during get book title by book id - %s", err.Error())
 			return "", err
 		}
 		// Get book author
 		book_author, err := db_action.GetBookAuthorByID(books_id[i])
+		if err != nil {
+			log.Printf("Error occurred during get book author by book id - %s", err.Error())
+			return "", err
+		}
 		item := fmt.Sprintf("%d- <a href=\"%s\">%s (%s)\n</a>", i, fmt.Sprintf(BOT_START_QUERY, BOT_USERNAME, books_id[i]), book_name, book_author)
 		// Append item to message
 		message += item
 	}
+	// Append price of cart (without shipment cost)
+	// Calculate books price
+	books_price, err := db_action.GetUserCartTotalPrice(user_telegram_id)
+	if err != nil {
+		return "", nil
+	}
+	message += "\n" + fmt.Sprintf("قیمت کل: %s\n", fmt.Sprint(books_price))
 	// Create message footer
 	message += "\n" + CART_MESSAGE_FOOTER
+	// Add bot username at the end of message
+	message += fmt.Sprintf("\n\n@%s", BOT_USERNAME)
 	return message, nil
+}
+func makeBuyCartMessage(user_telegram_id int) (string, error) {
+	// Get store cart number from setting file
+	store_cart_number := setting.ReadFieldInSettingData("STORE_CART_NUMBER")
+	if store_cart_number == "" {
+		return "", fmt.Errorf("STORE_CART_NUMBER is empty, so program can't perform its porpuse")
+	}
+	// Get store cart number owner full name
+	store_cart_number_owner_fullname := setting.ReadFieldInSettingData("STORE_CART_NUMBER_OWNER_FULLNAME,  so program can't perform its porpuse")
+	if store_cart_number_owner_fullname == "" {
+		return "", fmt.Errorf("STORE_CART_NUMBER_OWNER_FULLNAME is empty")
+	}
+	// Craete message and append header to it
+	var message string = BUY_CART_MESSAGE_HEADER
+	// Append card information to message
+	message += fmt.Sprintf("%s\n\n%s", fmt.Sprintf("شماره کارت فروشگاه: %s", store_cart_number), fmt.Sprintf("مالک شماره کارت: %s", store_cart_number_owner_fullname))
+
+	// Calculate cart total price (books + shipment cost)
+	books_price, shipment_cost, err := calculateCartTotalPrice(user_telegram_id)
+	if err != nil {
+		return "", err
+	}
+	// Append total price to message
+	message += "\n" + fmt.Sprintf("قیمت کتاب های موجود در سبد: %s\nهزینه ی ارسال بسته به ادرس شما: %s\nقیمت نهایی: %s\n", fmt.Sprint(books_price), fmt.Sprint(shipment_cost), fmt.Sprint(books_price+shipment_cost))
+	// Append footer to message
+	message += "\n" + BUY_CART_MESSAGE_FOOTER
+	// Add bot username at the end of message
+	message += fmt.Sprintf("\n\n@%s", BOT_USERNAME)
+	return message, nil
+}
+
+// Calculate price of cart (books + shipment cost)
+func calculateCartTotalPrice(user_telegram_id int) (float32, float32, error) {
+	// Calculate books price
+	cart_price, err := db_action.GetUserCartTotalPrice(user_telegram_id)
+	if err != nil {
+		return 0, 0, nil
+	}
+	// Get cart books and address needed information for calculate shipment cost
+	cart_info, err := db_action.GetCartInformationForCalculateShipmentCost(user_telegram_id)
+	if err != nil {
+		return 0, 0, err
+	}
+	// Calculate cart shipment cost
+	shipment_cost, err := calculateShipmentCost(cart_info)
+	if err != nil {
+		return 0, 0, err
+	}
+	// Cart total price
+	return cart_price, shipment_cost, nil
+}
+func calculateShipmentCost(cart_info *db_action.CartInformationForCalculateShipmentCost) (float32, error) {
+	return 0, nil
 }

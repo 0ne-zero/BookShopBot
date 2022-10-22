@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"path/filepath"
 	"strings"
@@ -53,12 +52,11 @@ func main() {
 	for update := range updates {
 		// Add user to database (If not exists)
 		if from := update.SentFrom(); from != nil {
-			user_id_str := fmt.Sprint(from.ID)
-			is_exists, err := db_action.IsUserExistsByTelegramUserID(user_id_str)
+			is_exists, err := db_action.IsUserExistsByTelegramUserID(int(from.ID))
 			if err != nil {
 				log.Printf("Error occurred during check user already exists in database - %s", err.Error())
 			} else if !is_exists {
-				err := db_action.AddUser(&model.User{TelegramUserID: user_id_str, TelegramUsername: from.UserName})
+				err := db_action.AddUser(&model.User{TelegramUserID: int(from.ID), TelegramUsername: from.UserName})
 				if err != nil {
 					log.Printf("Error occurred during add user to database - %s", err.Error())
 				}
@@ -74,8 +72,10 @@ func main() {
 				bot.AddBookToCart_InlineKeyboardHandler(bot_api, &update)
 			case strings.Contains(*data, bot.DELETE_BOOK_FROM_CART):
 				bot.DeleteBookFromCart_InlineKeyboardHandler(bot_api, &update)
-			case *data == bot.CONTACT_ADMIN_KEYBOARD_ITEM_TITLE:
-
+			case *data == bot.BUY_CART_KEYBOARD_ITEM_TITLE:
+				bot.BuyCart_InlineKeyboardHandler(bot_api, &update)
+			case *data == bot.SET_ADDRESS_KEYBOARD_ITEM_TITLE:
+				bot.SetAddress_InlineKeyboardHandler(bot_api, &update, &updates)
 			}
 		}
 		// Is admin
@@ -130,7 +130,7 @@ func user_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update
 		bot.Cart_KeyboardHandler(bot_api, update)
 		// Buy cart handler
 	case bot.BUY_CART_KEYBOARD_ITEM_TITLE:
-		bot.BuyCart_KeyboardHandler(bot_api, update)
+		bot.Cart_KeyboardHandler(bot_api, update)
 		// Contact to admin handler
 	case bot.CONTACT_ADMIN_KEYBOARD_ITEM_TITLE:
 		bot.ContactAdmin_KeyboardHandler(bot_api, update)

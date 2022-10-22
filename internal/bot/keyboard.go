@@ -3,7 +3,7 @@ package bot
 import tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 const (
-	SEARCH_BOOK_KEYBOARD_ITEM_TITLE   = "جست و جوی بر اساس عنوان کتاب"
+	SEARCH_BOOK_KEYBOARD_ITEM_TITLE   = "جستجوی کتاب"
 	CART_KEYBOARD_ITEM_TITLE          = "سبد خرید"
 	BUY_CART_KEYBOARD_ITEM_TITLE      = "خرید سبد"
 	CONTACT_ADMIN_KEYBOARD_ITEM_TITLE = "ارتباط با ادمین"
