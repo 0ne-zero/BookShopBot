@@ -50,6 +50,9 @@ var ADMIN_USER_PANEL_KEYBOARD = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
 	),
 	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton(SET_ADDRESS_KEYBOARD_ITEM_TITLE),
+	),
+	tgbotapi.NewKeyboardButtonRow(
 		tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE),
 	),
 	tgbotapi.NewKeyboardButtonRow(

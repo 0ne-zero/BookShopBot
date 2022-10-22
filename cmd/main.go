@@ -100,7 +100,7 @@ func main() {
 				bot.SearchBookByTitle_InlineQueryHandler(bot_api, &update)
 			}
 
-			if update.Message == nil && update.Message.Text != "" {
+			if update.Message != nil && update.Message.Text != "" {
 				user_Message_Text_Handler(bot_api, &update, &updates)
 			}
 		}
@@ -137,6 +137,9 @@ func user_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update
 		// Set address handler
 	case bot.SET_ADDRESS_KEYBOARD_ITEM_TITLE:
 		bot.SetAddress_KeyboardHandler(bot_api, update, updates)
+		// Back to main menu (admin panel) handler
+	case bot.MAIN_MENU_ITEM_TITLE:
+		bot.BackToMainMenu(bot_api, update)
 	}
 }
 func admin_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {

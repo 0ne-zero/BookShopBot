@@ -29,6 +29,10 @@ var NO_RESULT_FOUND_ERROR = "نتیجه ای یافت نشد."
 var NO_RESULT_FOUND_DESCRIPTION_FORMAT_ERROR = "برای عبارت %s نتیجه ای یافت نشد.\nعنوان کتاب را بررسی کنید, همچنین امکان دارد کتاب موجود نباشد."
 var SEARCH_TEXT = "you can search by pressing below button"
 var REQUEST_BOOK_PICTURE = "عکس های کتاب را در یک پیام ارسال کنید."
+var YOU_ALREADY_HAVE_ADDRESS = "شما قبلا ادرسی را وارد کرده اید."
+var SHOW_USER_ADDRESS_FORMATTED = "کشور: %s\nاستان: %s\nشهر: %s\nخیابان: %s\nشماره ی ساختمان: %s\nکد پستی: %s\nشماره تلفن: %s\nتوضیحات: %s\n"
+var CLICK_FOR_EDIT_ADDRESS_INLINE_KEYBOARD_ITEM_TITLE = "برای تغییر ادرس کلیک کنید!"
+var REQUEST_BOOK_WEIGHT = "وزن کتاب را وارد کنید (گرم)."
 var REQUEST_BOOK_ISBN = "isbn"
 var REQUEST_BOOK_TITLE = "عنوان کتاب را وارد کنید :"
 var REQUEST_BOOK_AUTHOR = "author"
@@ -64,3 +68,4 @@ var BOOK_DELETED_FROM_CART_FORMAT = "کتاب %s از سبد خرید حذف ش�
 var BOOK_NOT_ADDED_TO_CART = "کتاب به سبد حرید اضافه نشد."
 var BOOK_ADDED_TO_CART_SUCCESSFULY = "کتاب به سبد خرید اضافه شد."
 var SWITCH_TO_PV_FORMAT = "https://t.me/%s"
+var ADDRESS_ADDED_MESSAGE = "ادرس شما تنظیم شد"

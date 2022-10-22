@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	db_action "github.com/0ne-zero/BookShopBot/internal/database/action"
+	"github.com/0ne-zero/BookShopBot/internal/database/model"
 	"github.com/0ne-zero/BookShopBot/internal/utils"
 	setting "github.com/0ne-zero/BookShopBot/internal/utils/settings"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -169,7 +170,7 @@ func makeContactToAdminInlineKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) 
 func extractBookIDFromCallbackData(data string) string {
 	return data[strings.LastIndex(data, "?"):]
 }
-func GetInputFromUser(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel, input_request_text string, validate_func validateUserinputFunc) (string, error) {
+func getInputFromUser(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel, input_request_text string, validate_func validateUserinputFunc) (string, error) {
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, input_request_text)
 	msg.ReplyMarkup = MAIN_MENU_KEYBOARD
 	_, err := bot_api.Send(msg)
@@ -315,4 +316,93 @@ func downloadAndSavePhoto(download_url string) (string, error) {
 		return "", err
 	}
 	return pic_path, nil
+}
+func calculateShipmentCost(cart_cost float32, shipment_weight float32) (float32, error) {
+	return 0, nil
+}
+func getUserAddressInformationFromUser(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) (*model.Address, error) {
+	var addr model.Address
+	var err error
+	var input_fetched = false
+	// Get address country
+	for !input_fetched {
+		addr.Country, err = getInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_COUNTRY, updateValidateFunc)
+		if err != nil {
+			log.Printf("Error occurred during get address country - %s", err.Error())
+			return nil, err
+		}
+		input_fetched = true
+	}
+
+	// Get address province
+	input_fetched = false
+	for !input_fetched {
+		addr.Province, err = getInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_PROVINCE, updateValidateFunc)
+		if err != nil {
+			log.Printf("Error occurred during get address province - %s", err.Error())
+			return nil, err
+		}
+		input_fetched = true
+	}
+	// Get address city
+	input_fetched = false
+	for !input_fetched {
+		addr.City, err = getInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_CITY, updateValidateFunc)
+		if err != nil {
+			log.Printf("Error occurred during get address city - %s", err.Error())
+			return nil, err
+		}
+		input_fetched = true
+	}
+	// Get address street
+	input_fetched = false
+	for !input_fetched {
+		addr.Street, err = getInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_STREET, updateValidateFunc)
+		if err != nil {
+			log.Printf("Error occurred during get address street - %s", err.Error())
+			return nil, err
+		}
+		input_fetched = true
+	}
+	// Get address building number
+	input_fetched = false
+	for !input_fetched {
+		addr.BuildingNumber, err = getInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_BUILDING_NUMBER, updateValidateFunc)
+		if err != nil {
+			log.Printf("Error occurred during get address building number - %s", err.Error())
+			return nil, err
+		}
+		input_fetched = true
+	}
+	// Get address postal code
+	input_fetched = false
+	for !input_fetched {
+		addr.PostalCode, err = getInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_POSTAL_CODE, updateValidateFunc)
+		if err != nil {
+			log.Printf("Error occurred during get address postal code - %s", err.Error())
+			return nil, err
+		}
+		input_fetched = true
+	}
+	// Get address description
+	input_fetched = false
+	for !input_fetched {
+		addr.Description, err = getInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_DESCRIPTION, updateValidateFunc)
+		if err != nil {
+			log.Printf("Error occurred during get address description - %s", err.Error())
+			return nil, err
+		}
+		input_fetched = true
+	}
+	// Get address phone number
+	input_fetched = false
+	for !input_fetched {
+		addr.PhoneNumber, err = getInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_PHONE_NUMBER, updateValidateFunc)
+		if err != nil {
+			log.Printf("Error occurred during get address phone number - %s", err.Error())
+			return nil, err
+		}
+		input_fetched = true
+	}
+	return &addr, nil
 }

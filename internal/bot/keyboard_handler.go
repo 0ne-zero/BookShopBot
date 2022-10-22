@@ -47,89 +47,87 @@ func ContactAdmin_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Upd
 	}
 }
 func SetAddress_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
-	var addr model.Address
+	// Check user already has address
+	var user_have_address bool
 	var err error
-	var input_fetched = false
-	// Get address country
-	for !input_fetched {
-		addr.Country, err = GetInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_COUNTRY, updateValidateFunc)
-		if err != nil {
-			log.Printf("Error occurred during get address country - %s", err.Error())
-			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
-			continue
-		}
-		input_fetched = true
+	if user_have_address, err = db_action.DoesUserHaveAddress(int(update.SentFrom().ID)); err != nil {
+		log.Printf("Error occurred during check user have address - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 	}
+	// If user already have address show their address and ask for set again it
+	if user_have_address {
+		// Create edit address message
+		var message string
+		if !strings.HasSuffix(YOU_ALREADY_HAVE_ADDRESS, "\n") {
+			YOU_ALREADY_HAVE_ADDRESS = YOU_ALREADY_HAVE_ADDRESS + "\n"
+		}
+		message += YOU_ALREADY_HAVE_ADDRESS
+		// Get user address
+		exists_addr, err := db_action.GetUserAddressByTelegramUserID(int(update.SentFrom().ID))
+		if err != nil {
+			log.Printf("Error occurred during get user exist address for show - %s", err.Error())
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+			return
+		}
+		message += fmt.Sprintf(SHOW_USER_ADDRESS_FORMATTED, exists_addr.Country, exists_addr.Province, exists_addr.City, exists_addr.Street, exists_addr.BuildingNumber, exists_addr.PostalCode, exists_addr.PhoneNumber, exists_addr.Description)
+		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
+		msg.ReplyMarkup = FOR_EDIT_ADDRESS_KEYBOARD
+		// Send edit address message
+		if _, err = bot_api.Send(msg); err != nil {
+			log.Printf("Error occureed during send user address for edit message - %s", err.Error())
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+			return
+		}
+		// Wait for user response
+		for inner_update := range *updates {
+			if inner_update.CallbackQuery != nil && inner_update.CallbackData() != "" {
+				if inner_update.CallbackData() == CLICK_FOR_EDIT_ADDRESS_INLINE_KEYBOARD_ITEM_TITLE {
+					// Get user address from user
+					addr, err := getUserAddressInformationFromUser(bot_api, update, updates)
+					if err != nil {
+						log.Printf("Error occurred during get user address form user - %s", err.Error())
+					}
+					// Add address to user address
+					err = db_action.AddAddress(addr, int(update.SentFrom().ID))
+					if err != nil {
+						log.Printf("Error occurred during add user address - %s", err.Error())
+						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+					}
+					// Send address saved message to user
+					msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, ADDRESS_ADDED_MESSAGE)
+					if _, err = bot_api.Send(msg); err != nil {
+						log.Printf("Error occurred during send address addded/setted message - %s", err.Error())
+						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+					}
+				} else if inner_update.CallbackData() == CANCEL_KEYBOARD_ITEM_TITLE {
+					BackToMainMenu(bot_api, update)
+					return
+				}
+			} else {
+				SendError(bot_api, update.FromChat().ChatConfig().ChatID, ENTERED_VALUE_IS_INVALID_ERROR)
+				BackToMainMenu(bot_api, update)
+				return
+			}
+		}
 
-	// Get address province
-	for !input_fetched {
-		addr.Province, err = GetInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_PROVINCE, updateValidateFunc)
+	} else {
+		// Get user address from user
+		addr, err := getUserAddressInformationFromUser(bot_api, update, updates)
 		if err != nil {
-			log.Printf("Error occurred during get address province - %s", err.Error())
-			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
-			continue
+			log.Printf("Error occurred during get user address form user - %s", err.Error())
 		}
-		input_fetched = true
-	}
-	// Get address city
-	for !input_fetched {
-		addr.City, err = GetInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_CITY, updateValidateFunc)
+		// Add address to user address
+		err = db_action.AddAddress(addr, int(update.SentFrom().ID))
 		if err != nil {
-			log.Printf("Error occurred during get address city - %s", err.Error())
+			log.Printf("Error occurred during add user address - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
-			continue
 		}
-		input_fetched = true
-	}
-	// Get address street
-	for !input_fetched {
-		addr.Street, err = GetInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_STREET, updateValidateFunc)
-		if err != nil {
-			log.Printf("Error occurred during get address street - %s", err.Error())
+		// Send address saved message to user
+		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, ADDRESS_ADDED_MESSAGE)
+		if _, err = bot_api.Send(msg); err != nil {
+			log.Printf("Error occurred during send address addded/setted message - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
-			continue
 		}
-		input_fetched = true
-	}
-	// Get address building number
-	for !input_fetched {
-		addr.BuildingNumber, err = GetInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_BUILDING_NUMBER, updateValidateFunc)
-		if err != nil {
-			log.Printf("Error occurred during get address building number - %s", err.Error())
-			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
-			continue
-		}
-		input_fetched = true
-	}
-	// Get address postal code
-	for !input_fetched {
-		addr.PostalCode, err = GetInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_POSTAL_CODE, updateValidateFunc)
-		if err != nil {
-			log.Printf("Error occurred during get address postal code - %s", err.Error())
-			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
-			continue
-		}
-		input_fetched = true
-	}
-	// Get address description
-	for !input_fetched {
-		addr.Description, err = GetInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_DESCRIPTION, updateValidateFunc)
-		if err != nil {
-			log.Printf("Error occurred during get address description - %s", err.Error())
-			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
-			continue
-		}
-		input_fetched = true
-	}
-	// Get address phone number
-	for !input_fetched {
-		addr.PhoneNumber, err = GetInputFromUser(bot_api, update, updates, REQUEST_ADDRESS_PHONE_NUMBER, updateValidateFunc)
-		if err != nil {
-			log.Printf("Error occurred during get address phone number - %s", err.Error())
-			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
-			continue
-		}
-		input_fetched = true
 	}
 }
 func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
@@ -138,6 +136,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	var err error
 	// It's equal to true by default, jsut for enter to below for loop
 	var input_fetched bool = false
+	// Get Images/Pictures of book
 	for !input_fetched {
 		// Send request for book picture
 		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, REQUEST_BOOK_PICTURE)
@@ -185,10 +184,27 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 			}
 		}
 	}
+	// Get book's weight
+	input_fetched = false
+	for !input_fetched {
+		weight_str, err := getInputFromUser(bot_api, update, updates, REQUEST_BOOK_WEIGHT, updateValidateFunc)
+		if err != nil {
+			log.Printf("Error occurred during get book weight - %s", err.Error())
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		}
+		// Convert response to float from string
+		weight_float, err := strconv.ParseFloat(weight_str, 32)
+		if err != nil {
+			log.Printf("Error occurred during convert string weight to float32 weight - %s", err.Error())
+			SendError(bot_api, update.FromChat().ChatConfig().ChatID, ENTERED_NON_NUMBER_VALUE_ERROR)
+		}
+		book.Weight = float32(weight_float)
+		input_fetched = true
+	}
 	// Get book's title
 	input_fetched = false
 	for !input_fetched {
-		raw_isbn, err := GetInputFromUser(bot_api, update, updates, REQUEST_BOOK_ISBN, updateValidateFunc)
+		raw_isbn, err := getInputFromUser(bot_api, update, updates, REQUEST_BOOK_ISBN, updateValidateFunc)
 		if err != nil {
 			log.Printf("Error occurred during get book title - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -200,7 +216,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	// Get book's title
 	input_fetched = false
 	for !input_fetched {
-		book.Title, err = GetInputFromUser(bot_api, update, updates, REQUEST_BOOK_TITLE, updateValidateFunc)
+		book.Title, err = getInputFromUser(bot_api, update, updates, REQUEST_BOOK_TITLE, updateValidateFunc)
 		if err != nil {
 			log.Printf("Error occurred during get book title - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -211,7 +227,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	// Get book's author
 	input_fetched = false
 	for !input_fetched {
-		book.Author, err = GetInputFromUser(bot_api, update, updates, REQUEST_BOOK_AUTHOR, updateValidateFunc)
+		book.Author, err = getInputFromUser(bot_api, update, updates, REQUEST_BOOK_AUTHOR, updateValidateFunc)
 		if err != nil {
 			log.Printf("Error occurred during get book author - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -222,7 +238,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	// Get book's translator
 	input_fetched = false
 	for !input_fetched {
-		book.Translator, err = GetInputFromUser(bot_api, update, updates, REQUEST_BOOK_TRANSLATOR, updateValidateFunc)
+		book.Translator, err = getInputFromUser(bot_api, update, updates, REQUEST_BOOK_TRANSLATOR, updateValidateFunc)
 		if err != nil {
 			log.Printf("Error occurred during get book author - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -233,7 +249,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	// Get book's paper type
 	input_fetched = false
 	for !input_fetched {
-		book.PaperType, err = GetInputFromUser(bot_api, update, updates, REQUEST_BOOK_PAPER_TYPE, updateValidateFunc)
+		book.PaperType, err = getInputFromUser(bot_api, update, updates, REQUEST_BOOK_PAPER_TYPE, updateValidateFunc)
 		if err != nil {
 			log.Printf("Error occurred during get book author - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -244,7 +260,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	// Get book's description
 	input_fetched = false
 	for !input_fetched {
-		book.Description, err = GetInputFromUser(bot_api, update, updates, REQUEST_BOOK_DESCRIPTION, updateValidateFunc)
+		book.Description, err = getInputFromUser(bot_api, update, updates, REQUEST_BOOK_DESCRIPTION, updateValidateFunc)
 		if err != nil {
 			log.Printf("Error occurred during get book author - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -255,7 +271,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	// Get book's number of pages
 	input_fetched = false
 	for !input_fetched {
-		number_of_pages_str, err := GetInputFromUser(bot_api, update, updates, REQUEST_BOOK_NUMBER_OF_PAGES, updateValidateFunc)
+		number_of_pages_str, err := getInputFromUser(bot_api, update, updates, REQUEST_BOOK_NUMBER_OF_PAGES, updateValidateFunc)
 		if err != nil {
 			log.Printf("Error occurred during get book author - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -272,7 +288,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	// Get book's genre
 	input_fetched = false
 	for !input_fetched {
-		book.Genre, err = GetInputFromUser(bot_api, update, updates, REQUEST_BOOK_GENRE, updateValidateFunc)
+		book.Genre, err = getInputFromUser(bot_api, update, updates, REQUEST_BOOK_GENRE, updateValidateFunc)
 		if err != nil {
 			log.Printf("Error occurred during get book author - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -314,7 +330,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	// Get book's publisher
 	input_fetched = false
 	for !input_fetched {
-		book.Publisher, err = GetInputFromUser(bot_api, update, updates, REQUEST_BOOK_PUBLISHER, updateValidateFunc)
+		book.Publisher, err = getInputFromUser(bot_api, update, updates, REQUEST_BOOK_PUBLISHER, updateValidateFunc)
 		if err != nil {
 			log.Printf("Error occurred during get book author - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -325,7 +341,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	// Get book's publish date
 	input_fetched = false
 	for !input_fetched {
-		book.PublishDate, err = GetInputFromUser(bot_api, update, updates, REQUEST_BOOK_PUBLISHDATE, updateValidateFunc)
+		book.PublishDate, err = getInputFromUser(bot_api, update, updates, REQUEST_BOOK_PUBLISHDATE, updateValidateFunc)
 		if err != nil {
 			log.Printf("Error occurred during get book author - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -336,7 +352,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	// Get book's price
 	input_fetched = false
 	for !input_fetched {
-		price_str, err := GetInputFromUser(bot_api, update, updates, REQUEST_BOOK_PRICE, updateValidateFunc)
+		price_str, err := getInputFromUser(bot_api, update, updates, REQUEST_BOOK_PRICE, updateValidateFunc)
 		if err != nil {
 			log.Printf("Error occurred during get book author - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -353,7 +369,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	// Get book's arezo score
 	input_fetched = false
 	for !input_fetched {
-		arezo_score_str, err := GetInputFromUser(bot_api, update, updates, REQUEST_BOOK_AZERO_SCORE, updateValidateFunc)
+		arezo_score_str, err := getInputFromUser(bot_api, update, updates, REQUEST_BOOK_AZERO_SCORE, updateValidateFunc)
 		if err != nil {
 			log.Printf("Error occurred during get book author - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -491,7 +507,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 				input_fetched = true
 			}
 		}
-		price_str, err := GetInputFromUser(bot_api, update, updates, REQUEST_BOOK_PRICE, updateValidateFunc)
+		price_str, err := getInputFromUser(bot_api, update, updates, REQUEST_BOOK_PRICE, updateValidateFunc)
 		if err != nil {
 			log.Printf("Error occurred during get book author - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
