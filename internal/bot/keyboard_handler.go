@@ -86,6 +86,7 @@ func SetAddress_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Updat
 					addr, err := getUserAddressInformationFromUser(bot_api, update, updates)
 					if err != nil {
 						log.Printf("Error occurred during get user address form user - %s", err.Error())
+						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 					}
 					// Add address to user address
 					err = db_action.AddAddress(addr, int(update.SentFrom().ID))
@@ -115,6 +116,7 @@ func SetAddress_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Updat
 		addr, err := getUserAddressInformationFromUser(bot_api, update, updates)
 		if err != nil {
 			log.Printf("Error occurred during get user address form user - %s", err.Error())
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 		}
 		// Add address to user address
 		err = db_action.AddAddress(addr, int(update.SentFrom().ID))
