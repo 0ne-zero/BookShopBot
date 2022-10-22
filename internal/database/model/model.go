@@ -30,8 +30,8 @@ type Address struct {
 	Street         string `gorm:"NOT NULL;"`
 	BuildingNumber string `gorm:"NOT NULL;"`
 	PostalCode     string `gorm:"NOT NULL;"`
-	Description    string `gorm:"NOT NULL;"`
 	PhoneNumber    string `gorm:"NOT NULL;"`
+	Description    string `gorm:"NOT NULL;"`
 	// Address has one User
 	UserID uint `gorm:"NOT NULL;"`
 }
@@ -53,6 +53,7 @@ type Book struct {
 	Price          float64 `gorm:"NOT NULL;"`
 	GoodReadsScore float32 `gorm:"NOT NULL;"`
 	ArezoScore     float32 `gorm:"NOT NULL;"`
+	Weight         float32 `gorm:"NOT NULL;"`
 
 	// Book has many BookCoverTypes
 	CoverType       *BookCoverType `gorm:"foreignkey:BookCoverTypeID"`

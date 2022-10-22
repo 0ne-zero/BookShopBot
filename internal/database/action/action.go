@@ -24,7 +24,7 @@ func GetUserCartIDByTelegramUserID(telegram_user_id int) (int, error) {
 		log.Fatal("Cannot connect to the database")
 	}
 	var cart_id int
-	err := db.Model(&model.Cart{}).Select("id").Where("user_id = ?", telegram_user_id).Scan(&cart_id).Error
+	err := db.Model(&model.Cart{}).Select("id").Where("telegram_user_id = ?", telegram_user_id).Scan(&cart_id).Error
 	return cart_id, err
 }
 func DeleteBookFromCart(book_id, cart_id int) error {
@@ -82,7 +82,54 @@ func GetNotConfirmedOrders() ([]*model.Order, error) {
 	err := db.Model(&model.Order{}).Where("order_status_id = ?", 1).Find(&orders).Error
 	return orders, err
 }
-
+func AddAddress(addr *model.Address, telegram_user_id int) error {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	// Set user id of address
+	user_id, err := GetUserIDByTelegramUserID(telegram_user_id)
+	if err != nil {
+		return err
+	}
+	addr.UserID = uint(user_id)
+	return db.Create(addr).Error
+}
+func GetUserAddressByTelegramUserID(telegram_user_id int) (*model.Address, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	user_id, err := GetUserIDByTelegramUserID(telegram_user_id)
+	if err != nil {
+		return nil, err
+	}
+	var addr *model.Address
+	err = db.Model(&model.Address{}).Where("user_id = ?", user_id).Find(&addr).Error
+	return addr, err
+}
+func DoesUserHaveAddress(telegram_user_id int) (bool, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	user_id, err := GetUserIDByTelegramUserID(telegram_user_id)
+	if err != nil {
+		return false, err
+	}
+	var has bool
+	err = db.Model(&model.Address{}).Select("count(*) > 0").Where("user_id = ?", user_id).Scan(&has).Error
+	return has, err
+}
+func GetUserIDByTelegramUserID(telegram_user_id int) (int, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var user_id int
+	err := db.Model(&model.User{}).Select("id").Where("telegram_user_id = ?", telegram_user_id).Scan(&user_id).Error
+	return user_id, err
+}
 func AddBookToCart(cart_id, book_id int) error {
 	db := database.InitializeOrGetDB()
 	if db == nil {
