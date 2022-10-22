@@ -108,6 +108,20 @@ func GetUserAddressByTelegramUserID(telegram_user_id int) (*model.Address, error
 	err = db.Model(&model.Address{}).Where("user_id = ?", user_id).Find(&addr).Error
 	return addr, err
 }
+func GetUserCartBooksID(telegram_user_id int) ([]int, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	// Get user cart id
+	cart_id, err := GetUserCartIDByTelegramUserID(telegram_user_id)
+	if err != nil {
+		return nil, err
+	}
+	var books_id []int
+	err = db.Model(&model.CartItem{}).Where("cart_id = ?", cart_id).Select("book_id").Scan(&books_id).Error
+	return books_id, err
+}
 func DoesUserHaveAddress(telegram_user_id int) (bool, error) {
 	db := database.InitializeOrGetDB()
 	if db == nil {
@@ -159,6 +173,15 @@ func GetBookTitleByID(b_id int) (string, error) {
 	var title string
 	err := db.Model(&model.Book{}).Where("id = ?", b_id).Select("title").Scan(&title).Error
 	return title, err
+}
+func GetBookAuthorByID(b_id int) (string, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var author string
+	err := db.Model(&model.Book{}).Where("id = ?", b_id).Select("author").Scan(&author).Error
+	return author, err
 }
 func DeleteBookByID(b_id int) error {
 	db := database.InitializeOrGetDB()

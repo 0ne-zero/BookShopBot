@@ -7,7 +7,8 @@ const (
 	CART_KEYBOARD_ITEM_TITLE          = "سبد خرید"
 	BUY_CART_KEYBOARD_ITEM_TITLE      = "خرید سبد"
 	CONTACT_ADMIN_KEYBOARD_ITEM_TITLE = "ارتباط با ادمین"
-	SET_ADDRESS_KEYBOARD_ITEM_TITLE   = "ادرس ارسال"
+	SET_ADDRESS_KEYBOARD_ITEM_TITLE   = "تنظیم ادرس"
+	ORDERS_KEYBOARD_ITEM_TITLE        = "سفارشات"
 
 	MAIN_MENU_ITEM_TITLE       = "منو اصلی"
 	CANCEL_KEYBOARD_ITEM_TITLE = "انصراف"
@@ -30,12 +31,9 @@ var MAIN_MENU_KEYBOARD = tgbotapi.NewReplyKeyboard(
 )
 var USER_PANEL_KEYBOARD = tgbotapi.NewReplyKeyboard(
 	tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton(BUY_CART_KEYBOARD_ITEM_TITLE),
 		tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
-		tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
-	),
-	tgbotapi.NewKeyboardButtonRow(
 		tgbotapi.NewKeyboardButton(SET_ADDRESS_KEYBOARD_ITEM_TITLE),
+		tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
 	),
 	tgbotapi.NewKeyboardButtonRow(
 		tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE),
@@ -45,12 +43,9 @@ var USER_PANEL_KEYBOARD = tgbotapi.NewReplyKeyboard(
 // Admin keyboards
 var ADMIN_USER_PANEL_KEYBOARD = tgbotapi.NewReplyKeyboard(
 	tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton(BUY_CART_KEYBOARD_ITEM_TITLE),
 		tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
-		tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
-	),
-	tgbotapi.NewKeyboardButtonRow(
 		tgbotapi.NewKeyboardButton(SET_ADDRESS_KEYBOARD_ITEM_TITLE),
+		tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
 	),
 	tgbotapi.NewKeyboardButtonRow(
 		tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE),

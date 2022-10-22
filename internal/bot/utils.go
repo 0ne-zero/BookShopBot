@@ -406,3 +406,31 @@ func getUserAddressInformationFromUser(bot_api *tgbotapi.BotAPI, update *tgbotap
 	}
 	return &addr, nil
 }
+
+func makeCartMessage(telegram_user_id int) (string, error) {
+	var message string
+	// Add message header
+	message += CART_MESSAGE_HEADER + "\n\n"
+	message = "محتویات سبد خرید:\n"
+	// Get user cart books id
+	books_id, err := db_action.GetUserCartBooksID(telegram_user_id)
+	if err != nil {
+		return "", nil
+	}
+	// Show contents of cart
+	for i := range books_id {
+		// Get book name
+		book_name, err := db_action.GetBookTitleByID(books_id[i])
+		if err != nil {
+			return "", err
+		}
+		// Get book author
+		book_author, err := db_action.GetBookAuthorByID(books_id[i])
+		item := fmt.Sprintf("%d- <a href=\"%s\">%s (%s)\n</a>", i, fmt.Sprintf(BOT_START_QUERY, BOT_USERNAME, books_id[i]), book_name, book_author)
+		// Append item to message
+		message += item
+	}
+	// Create message footer
+	message += "\n" + CART_MESSAGE_FOOTER
+	return message, nil
+}
