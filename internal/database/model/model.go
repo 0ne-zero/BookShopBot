@@ -14,7 +14,7 @@ type Base struct {
 type User struct {
 	Base
 	TelegramUsername string `gorm:"NOT NULL;"`
-	TelegramUserID   string `gorm:"NOT NULL;"`
+	TelegramUserID   int    `gorm:"NOT NULL;"`
 	// User has one Address
 	Address Address
 	// User has one Cart
@@ -50,7 +50,7 @@ type Book struct {
 	Censored       bool    `gorm:"NOT NULL;"`
 	Publisher      string  `gorm:"NOT NULL;"`
 	PublishDate    string  `gorm:"NOT NULL;"`
-	Price          float64 `gorm:"NOT NULL;"`
+	Price          float32 `gorm:"NOT NULL;"`
 	GoodReadsScore float32 `gorm:"NOT NULL;"`
 	ArezoScore     float32 `gorm:"NOT NULL;"`
 	Weight         float32 `gorm:"NOT NULL;"`
@@ -103,7 +103,7 @@ type OrderStatus struct {
 }
 type Cart struct {
 	Base
-	TotalPrice float64 `gorm:"NOT NULL;"`
+	TotalPrice float32 `gorm:"NOT NULL;"`
 	IsOrdered  bool    `gorm:"NOT NULL;"`
 
 	// Cart has one User

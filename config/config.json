@@ -1,5 +1,7 @@
 {
     "ADMIN_TELEGRAM_ID":"38866192",
     "ADMIN_TELEGRAM_USERNAME": "One_z3r0",
-    "DSN":"me:@/Fucky9909@tcp(127.0.0.1:3306)/book_shop_arezo?parseTime=true"
+    "DSN":"me:@/Fucky9909@tcp(127.0.0.1:3306)/book_shop_arezo?parseTime=true",
+    "STORE_CART_NUMBER":"",
+    "STORE_CART_NUMBER_OWNER_FULLNAME":""
 }

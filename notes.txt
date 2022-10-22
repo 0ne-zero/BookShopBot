@@ -1,1 +1,2 @@
 empty cart when user ordered
+complete shipment cost function
