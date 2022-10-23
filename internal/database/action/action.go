@@ -246,6 +246,20 @@ func GetUserCartTotalPrice(user_telegram_id int) (float32, error) {
 	err = db.Model(&model.Cart{}).Where("id = ?", cart_id).Select("total_price").Scan(&total_price).Error
 	return total_price, err
 }
+func DoesUserHaveOrder(user_telegram_id int) (bool, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	// Get user cart id
+	user_id, err := GetUserIDByTelegramUserID(user_telegram_id)
+	if err != nil {
+		return false, err
+	}
+	var have bool
+	err = db.Model(&model.Order{}).Select("count(*) > 0").Where("user_id = ?", user_id).Scan(&have).Error
+	return have, err
+}
 func GetCartInformationForCalculateShipmentCost(user_telegram_id int) (*CartInformationForCalculateShipmentCost, error) {
 	db := database.InitializeOrGetDB()
 	if db == nil {
