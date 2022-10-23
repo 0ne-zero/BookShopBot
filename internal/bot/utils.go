@@ -109,45 +109,7 @@ func makeBookSizeKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
 	var keyboard = tgbotapi.NewInlineKeyboardMarkup(rows...)
 	return &keyboard, nil
 }
-func makeBookAgeCategoryKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
-	categories, err := db_action.GetBookAgeCategories()
-	if err != nil {
-		return nil, err
-	}
-	var keyboard_items []tgbotapi.InlineKeyboardButton
-	for i := range categories {
-		item := tgbotapi.NewInlineKeyboardButtonData(categories[i].Category, fmt.Sprint(categories[i].ID))
-		keyboard_items = append(keyboard_items, item)
-	}
-	var rows [][]tgbotapi.InlineKeyboardButton
-	keyboard_items_len := len(keyboard_items)
-	if keyboard_items_len < 4 {
-		rows = append(rows, keyboard_items)
-	} else {
-		start := 0
-		end := 3
-		number_of_rows_divide := float64(keyboard_items_len) / float64(3)
-		if utils.IsFloatNumberRound(number_of_rows_divide) {
-			for i := 0; i < int(number_of_rows_divide); i++ {
-				rows = append(rows, keyboard_items[start:end])
-				start += 3
-				end += 3
-			}
-		} else {
-			number_of_rows_divide++
-			for i := 0; i < int(number_of_rows_divide); i++ {
-				if end > keyboard_items_len {
-					rows = append(rows, keyboard_items[start:])
-				}
-				rows = append(rows, keyboard_items[start:end])
-				start += 3
-				end += 3
-			}
-		}
-	}
-	var keyboard = tgbotapi.NewInlineKeyboardMarkup(rows...)
-	return &keyboard, nil
-}
+
 func makeBookKeyboard(book_id int) *tgbotapi.InlineKeyboardMarkup {
 	callback_data := fmt.Sprint(ADD_BOOK_TO_CART_INLINE_KEYBOARD_ITEM_TITLE, "?", book_id)
 	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(ADD_BOOK_TO_CART_INLINE_KEYBOARD_ITEM_TITLE, callback_data)))
@@ -172,7 +134,7 @@ func extractBookIDFromCallbackData(data string) string {
 }
 func getInputFromUser(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel, input_request_text string, validate_func validateUserinputFunc) (string, error) {
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, input_request_text)
-	msg.ReplyMarkup = MAIN_MENU_KEYBOARD
+	msg.ReplyMarkup = BACK_TO_MAIN_MENU_KEYBOARD
 	_, err := bot_api.Send(msg)
 	if err != nil {
 		log.Print("Error occurred during send request for book title")
@@ -227,8 +189,7 @@ func GetGoodreadsScoreByISBN(isbn string) (string, error) {
 	}
 	return string(output_bytes), nil
 }
-func IsAdmin(update *tgbotapi.Update) bool {
-
+func IsAdmin(user_telegram_id int) bool {
 	// Get admin id from settings
 	admin_id_str := setting.ReadFieldInSettingData("ADMIN_TELEGRAM_ID")
 	// Parse id to int64
@@ -237,21 +198,13 @@ func IsAdmin(update *tgbotapi.Update) bool {
 		return false
 	}
 	// Check ids are equal or not
-	if getUserID(update) == admin_id {
+	if int64(user_telegram_id) == admin_id {
 		return true
 	} else {
 		return false
 	}
 }
-func getUserID(update *tgbotapi.Update) int64 {
-	if update.Message != nil && update.Message.From != nil {
-		return update.Message.From.ID
-	}
-	if update.InlineQuery != nil && update.InlineQuery.From != nil {
-		return update.InlineQuery.From.ID
-	}
-	return 0
-}
+
 func removeExifFromPhoto(bytes []byte) ([]byte, error) {
 	removed_exif_bytes, err := exif_r.Remove(bytes)
 	if err != nil {
@@ -498,4 +451,109 @@ func calculateCartTotalPrice(user_telegram_id int) (float32, float32, error) {
 }
 func calculateShipmentCost(cart_info *db_action.CartInformationForCalculateShipmentCost) (float32, error) {
 	return 0, nil
+}
+func makeMainKeyboard(user_telegram_id int) (*tgbotapi.ReplyKeyboardMarkup, error) {
+	// Check user is admin
+	if IsAdmin(user_telegram_id) {
+		keyboard := tgbotapi.NewReplyKeyboard(
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(ADMIN_STATISTICS_KEYBOARD_ITEM_TITLE),
+				tgbotapi.NewKeyboardButton(ADMIN_CONFIRM_ORDERS_KEYBOARD_ITEM_TITLE),
+				tgbotapi.NewKeyboardButton(ADMIN_DELETE_BOOK_KEYBOARD_ITEM_TITLE),
+				tgbotapi.NewKeyboardButton(ADMIN_ADD_BOOK_KEYBOARD_ITEM_TITLE),
+			),
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(ADMIN_BACK_TO_USER_PANEL_ITEM_TITLE)),
+		)
+		return &keyboard, nil
+		// User isn't admin
+	} else {
+		if have_order, err := db_action.DoesUserHaveOrder(user_telegram_id); err != nil {
+			log.Printf("Error occurred during check does user have any order - %s", err.Error())
+			return nil, err
+			// User have order
+		} else if have_order {
+			keyboard := tgbotapi.NewReplyKeyboard(
+				tgbotapi.NewKeyboardButtonRow(
+					tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
+					tgbotapi.NewKeyboardButton(SET_ADDRESS_KEYBOARD_ITEM_TITLE),
+					tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
+				),
+				tgbotapi.NewKeyboardButtonRow(
+					tgbotapi.NewKeyboardButton(ORDERS_KEYBOARD_ITEM_TITLE),
+				),
+				tgbotapi.NewKeyboardButtonRow(
+					tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE)),
+			)
+			return &keyboard, nil
+			// User doesn't have order
+		} else {
+			keyboard := tgbotapi.NewReplyKeyboard(
+				tgbotapi.NewKeyboardButtonRow(
+					tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
+					tgbotapi.NewKeyboardButton(SET_ADDRESS_KEYBOARD_ITEM_TITLE),
+					tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
+				),
+				tgbotapi.NewKeyboardButtonRow(
+					tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE)),
+			)
+			return &keyboard, nil
+		}
+	}
+	return nil, fmt.Errorf("Technically isn't possible user not be admin neither admin")
+}
+func makeAdminUserPanelKeyboard() *tgbotapi.ReplyKeyboardMarkup {
+	var keyboard = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
+			tgbotapi.NewKeyboardButton(SET_ADDRESS_KEYBOARD_ITEM_TITLE),
+			tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
+		),
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE),
+		),
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(ADMIN_BACK_TO_ADMIN_PANEL_ITEM_TITLE),
+		),
+	)
+	return &keyboard
+}
+func makeBookAgeCategoryKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
+	categories, err := db_action.GetBookAgeCategories()
+	if err != nil {
+		return nil, err
+	}
+	var keyboard_items []tgbotapi.InlineKeyboardButton
+	for i := range categories {
+		item := tgbotapi.NewInlineKeyboardButtonData(categories[i].Category, fmt.Sprint(categories[i].ID))
+		keyboard_items = append(keyboard_items, item)
+	}
+	var rows [][]tgbotapi.InlineKeyboardButton
+	keyboard_items_len := len(keyboard_items)
+	if keyboard_items_len < 4 {
+		rows = append(rows, keyboard_items)
+	} else {
+		start := 0
+		end := 3
+		number_of_rows_divide := float64(keyboard_items_len) / float64(3)
+		if utils.IsFloatNumberRound(number_of_rows_divide) {
+			for i := 0; i < int(number_of_rows_divide); i++ {
+				rows = append(rows, keyboard_items[start:end])
+				start += 3
+				end += 3
+			}
+		} else {
+			number_of_rows_divide++
+			for i := 0; i < int(number_of_rows_divide); i++ {
+				if end > keyboard_items_len {
+					rows = append(rows, keyboard_items[start:])
+				}
+				rows = append(rows, keyboard_items[start:end])
+				start += 3
+				end += 3
+			}
+		}
+	}
+	var keyboard = tgbotapi.NewInlineKeyboardMarkup(rows...)
+	return &keyboard, nil
 }

@@ -79,7 +79,7 @@ func main() {
 			}
 		}
 		// Is admin
-		if bot.IsAdmin(&update) {
+		if bot.IsAdmin(int(update.SentFrom().ID)) {
 			// User is admin
 			if update.InlineQuery != nil && update.InlineQuery.Query != "" {
 				// Search for delete

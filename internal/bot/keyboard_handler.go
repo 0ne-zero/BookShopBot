@@ -630,17 +630,22 @@ func Admin_Statistics_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi
 }
 func Admin_BackToAdminPanel_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, ADMIN_START_TEXT)
-	msg.ReplyMarkup = ADMIN_PANEL_KEYBOARD
+	keyboard, err := makeMainKeyboard(int(update.SentFrom().ID))
+	if err != nil {
+		log.Printf("Error occurred during make main keyboard - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+	}
+	msg.ReplyMarkup = keyboard
 	if _, err := bot_api.Send(msg); err != nil {
-		log.Print("Error occurred during send start message to normal user")
+		log.Printf("Error occurred during send start message to normal user - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 	}
 }
 func Admin_BackToUserPanel_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, ADMIN_START_TEXT)
-	msg.ReplyMarkup = ADMIN_USER_PANEL_KEYBOARD
+	msg.ReplyMarkup = makeAdminUserPanelKeyboard()
 	if _, err := bot_api.Send(msg); err != nil {
-		log.Print("Error occurred during send start message to normal user")
+		log.Printf("Error occurred during send start message to normal user - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 	}
 }
