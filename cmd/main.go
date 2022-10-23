@@ -68,9 +68,9 @@ func main() {
 			// Alias for call back data
 			data := &update.CallbackQuery.Data
 			switch {
-			case strings.Contains(*data, bot.ADD_BOOK_TO_CART):
+			case strings.Contains(*data, bot.ADD_BOOK_TO_CART_INLINE_KEYBOARD_ITEM_TITLE):
 				bot.AddBookToCart_InlineKeyboardHandler(bot_api, &update)
-			case strings.Contains(*data, bot.DELETE_BOOK_FROM_CART):
+			case strings.Contains(*data, bot.DELETE_BOOK_FROM_CART_INLINE_KEYBOARD_ITEM_TITLE):
 				bot.DeleteBookFromCart_InlineKeyboardHandler(bot_api, &update)
 			case *data == bot.BUY_CART_KEYBOARD_ITEM_TITLE:
 				bot.BuyCart_InlineKeyboardHandler(bot_api, &update)
