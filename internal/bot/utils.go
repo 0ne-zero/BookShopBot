@@ -149,13 +149,13 @@ func makeBookAgeCategoryKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
 	return &keyboard, nil
 }
 func makeBookKeyboard(book_id int) *tgbotapi.InlineKeyboardMarkup {
-	callback_data := fmt.Sprint(ADD_BOOK_TO_CART, "?", book_id)
-	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(ADD_BOOK_TO_CART, callback_data)))
+	callback_data := fmt.Sprint(ADD_BOOK_TO_CART_INLINE_KEYBOARD_ITEM_TITLE, "?", book_id)
+	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(ADD_BOOK_TO_CART_INLINE_KEYBOARD_ITEM_TITLE, callback_data)))
 	return &keyboard
 }
 func makeBookExistsInCartKeyboard(book_id int) *tgbotapi.InlineKeyboardMarkup {
-	callback_data := fmt.Sprint(DELETE_BOOK_FROM_CART, "?", book_id)
-	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(DELETE_BOOK_FROM_CART, callback_data)))
+	callback_data := fmt.Sprint(DELETE_BOOK_FROM_CART_INLINE_KEYBOARD_ITEM_TITLE, "?", book_id)
+	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(DELETE_BOOK_FROM_CART_INLINE_KEYBOARD_ITEM_TITLE, callback_data)))
 	return &keyboard
 }
 func makeContactToAdminInlineKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {

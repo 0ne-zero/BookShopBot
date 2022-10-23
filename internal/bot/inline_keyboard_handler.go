@@ -29,10 +29,10 @@ func AddBookToCart_InlineKeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbot
 	err = db_action.AddBookToCart(cart_id, book_id)
 	if err != nil {
 		log.Printf("Error occurred during add book to cart - %s", err.Error())
-		SendError(bot_api, update.FromChat().ChatConfig().ChatID, BOOK_NOT_ADDED_TO_CART)
+		SendError(bot_api, update.FromChat().ChatConfig().ChatID, BOOK_NOT_ADDED_TO_CART_MESSAGE)
 		return
 	}
-	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, BOOK_ADDED_TO_CART_SUCCESSFULY)
+	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, BOOK_ADDED_TO_CART_MESSAGE)
 	if _, err := bot_api.Send(msg); err != nil {
 		log.Printf("Error occurred during send book added to cart successfuly message - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)

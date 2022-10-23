@@ -85,9 +85,10 @@ func SetAddress_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Updat
 		// Create edit address message
 		var message string
 		if !strings.HasSuffix(YOU_ALREADY_HAVE_ADDRESS, "\n") {
-			YOU_ALREADY_HAVE_ADDRESS = YOU_ALREADY_HAVE_ADDRESS + "\n"
+			message += YOU_ALREADY_HAVE_ADDRESS + "\n"
+		} else {
+			message += YOU_ALREADY_HAVE_ADDRESS
 		}
-		message += YOU_ALREADY_HAVE_ADDRESS
 		// Get user address
 		exists_addr, err := db_action.GetUserAddressByTelegramUserID(int(update.SentFrom().ID))
 		if err != nil {
@@ -570,7 +571,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	err = db_action.AddBook(&book)
 	if err != nil {
 		log.Printf("Error occurred during add book to database")
-		SendError(bot_api, update.FromChat().ChatConfig().ChatID, BOOK_NOT_SAVED_IN_DATABASE)
+		SendError(bot_api, update.FromChat().ChatConfig().ChatID, BOOK_NOT_SAVED_IN_DATABASE_ERROR)
 	}
 }
 
@@ -606,10 +607,10 @@ func Admin_DeleteBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi
 					log.Printf("Error occurred during delete book from database - %s", err.Error())
 					SendUnknownError(bot_api, inner_update.FromChat().ChatConfig().ChatID)
 				}
-				msg := tgbotapi.NewMessage(inner_update.FromChat().ChatConfig().ChatID, fmt.Sprintf(BOOK_DELETED_SUCCESSFULY, book_title))
+				msg := tgbotapi.NewMessage(inner_update.FromChat().ChatConfig().ChatID, fmt.Sprintf(BOOK_DELETED_MESSAGE, book_title))
 				if _, err = bot_api.Send(msg); err != nil {
 					log.Printf("Error occurred during send book successfuly deleted message")
-					SendError(bot_api, inner_update.FromChat().ChatConfig().ChatID, fmt.Sprintf(BOOK_DELETED_SUCCESSFULY, book_title))
+					SendError(bot_api, inner_update.FromChat().ChatConfig().ChatID, fmt.Sprintf(BOOK_DELETED_MESSAGE, book_title))
 				}
 				break
 				// User canceled the operation
