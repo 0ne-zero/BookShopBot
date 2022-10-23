@@ -86,6 +86,7 @@ func BuyCart_InlineKeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 		}
 		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
 		msg.ParseMode = "html"
+		msg.ReplyMarkup = I_PAID_CART
 		if _, err := bot_api.Send(msg); err != nil {
 			log.Printf("Error occurred during send buy cart message to user - %s", err.Error())
 			SendUnknownError(bot_api, update.CallbackQuery.Message.MigrateFromChatID)
