@@ -30,7 +30,21 @@ func GetUserCartIDByTelegramUserID(user_telegram_id int) (int, error) {
 	}
 	var cart_id int
 	err = db.Model(&model.Cart{}).Select("id").Where("user_id = ?", user_id).Scan(&cart_id).Error
-	return cart_id, err
+	if err != nil {
+		return 0, err
+	}
+	// If cart_id is equal to 0, means that user doesn't even have cart,so we should create one,and return it's id
+	if cart_id != 0 {
+		return cart_id, nil
+		// User doesn't have cart
+	} else {
+		// Create cart
+		cart := &model.Cart{
+			UserID: uint(user_id),
+		}
+		err = db.Create(cart).Error
+		return cart.ID, err
+	}
 }
 func IsUserCartEmptyByUserTelegramID(user_telegram_id int) (bool, error) {
 	db := database.InitializeOrGetDB()
@@ -43,7 +57,7 @@ func IsUserCartEmptyByUserTelegramID(user_telegram_id int) (bool, error) {
 		return false, err
 	}
 	var cart model.Cart
-	err = db.Model(&cart).Where("user_id = ?", user_id).Preload("CartItems").First(&cart).Error
+	err = db.Model(&cart).Where("user_id = ?", user_id).Preload("CartItems").Find(&cart).Error
 	if err != nil {
 		return false, err
 	}

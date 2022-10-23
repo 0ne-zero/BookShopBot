@@ -137,7 +137,7 @@ func getInputFromUser(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates
 	msg.ReplyMarkup = BACK_TO_MAIN_MENU_KEYBOARD
 	_, err := bot_api.Send(msg)
 	if err != nil {
-		log.Print("Error occurred during send request for book title")
+		log.Printf("Error occurred during send request for book title - %s", err.Error())
 		return "", err
 	}
 	// Wait for user input
@@ -406,14 +406,14 @@ func makeBuyCartMessage(user_telegram_id int) (string, error) {
 		return "", fmt.Errorf("STORE_CART_NUMBER is empty, so program can't perform its porpuse")
 	}
 	// Get store cart number owner full name
-	store_cart_number_owner_fullname := setting.ReadFieldInSettingData("STORE_CART_NUMBER_OWNER_FULLNAME,  so program can't perform its porpuse")
+	store_cart_number_owner_fullname := setting.ReadFieldInSettingData("STORE_CART_NUMBER_OWNER_FULLNAME")
 	if store_cart_number_owner_fullname == "" {
 		return "", fmt.Errorf("STORE_CART_NUMBER_OWNER_FULLNAME is empty")
 	}
 	// Craete message and append header to it
 	var message string = BUY_CART_MESSAGE_HEADER
 	// Append card information to message
-	message += fmt.Sprintf("%s\n\n%s", fmt.Sprintf("شماره کارت فروشگاه: %s", store_cart_number), fmt.Sprintf("مالک شماره کارت: %s", store_cart_number_owner_fullname))
+	message += fmt.Sprintf("\n\n%s\n%s\n", fmt.Sprintf("شماره کارت فروشگاه: %s", store_cart_number), fmt.Sprintf("مالک شماره کارت: %s", store_cart_number_owner_fullname))
 
 	// Calculate cart total price (books + shipment cost)
 	books_price, shipment_cost, err := calculateCartTotalPrice(user_telegram_id)
@@ -421,9 +421,9 @@ func makeBuyCartMessage(user_telegram_id int) (string, error) {
 		return "", err
 	}
 	// Append total price to message
-	message += "\n" + fmt.Sprintf("قیمت کتاب های موجود در سبد: %s\nهزینه ی ارسال بسته به ادرس شما: %s\nقیمت نهایی: %s\n", fmt.Sprint(books_price), fmt.Sprint(shipment_cost), fmt.Sprint(books_price+shipment_cost))
+	message += "\n" + fmt.Sprintf("قیمت کتاب ها: : %s\nهزینه ی ارسال  : %s\n<b>قیمت نهایی</b>: %s\n", fmt.Sprint(books_price), fmt.Sprint(shipment_cost), fmt.Sprint(books_price+shipment_cost))
 	// Append footer to message
-	message += "\n" + BUY_CART_MESSAGE_FOOTER
+	message += BUY_CART_MESSAGE_FOOTER
 	// Add bot username at the end of message
 	message += fmt.Sprintf("\n\n@%s", BOT_USERNAME)
 	return message, nil

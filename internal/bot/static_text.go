@@ -41,7 +41,7 @@ const (
 	YOU_HAVE_NOT_ADDRESS_INLINE_KEYBOARD_MESSAGE = "شما ادرسی را تنظیم نکرده اید, برای تنظیم ادرس بر روی دکمه ی زیر کلیک کنید !"
 	CONTACT_TO_ADMIN_MESSAGE                     = "با کلیک بر روی دکمه ی زیر میتوانید با ادمین ارتباط داشته باشید !"
 	START_TEXT                                   = "سلام خوش امدید"
-	BUY_CART_MESSAGE_HEADER                      = "لطفا مبلغ درج شده را به شماره کارت زیر واریز کنید و بعد از <b>حتما</b> روی دکمه ی زیر کلیک کنید.\nپس از ان سفارش شما در صف تایید قرار میگیرد و میتوانید از طریق منو اصلی برنامه بر روی دکمه ی سفارش ها کلیک کنید و وضعیت سفارش خود را ببینید.\n"
+	BUY_CART_MESSAGE_HEADER                      = "لطفا مبلغ درج شده را به شماره کارت زیر واریز کنید و بعد <b>حتما</b> روی دکمه ی زیر کلیک کنید.\nپس از ان سفارش شما در صف تایید قرار میگیرد و میتوانید از طریق منو اصلی برنامه بر روی دکمه ی سفارش ها کلیک کنید و وضعیت سفارش خود را ببینید.\n"
 	BUY_CART_MESSAGE_FOOTER                      = ""
 	BUY_CART_MESSAGE                             = ""
 	CART_MESSAGE_HEADER                          = ""
@@ -98,4 +98,5 @@ const (
 	ADD_BOOK_TO_CART_INLINE_KEYBOARD_ITEM_TITLE       = "اضافه کردن به سبد خرید"
 	DELETE_BOOK_FROM_CART_INLINE_KEYBOARD_ITEM_TITLE  = "حدف از سبد خرید"
 	CLICK_FOR_EDIT_ADDRESS_INLINE_KEYBOARD_ITEM_TITLE = "برای تغییر ادرس کلیک کنید !"
+	I_PAID_CART_INLINE_KEYBOARD_ITEM_TITLE            = "پرداخت کردم"
 )

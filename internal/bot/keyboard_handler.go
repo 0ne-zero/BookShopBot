@@ -332,7 +332,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, REQUEST_BOOK_CENSORED_STATUS)
 		msg.ReplyMarkup = CENSORED_STATUS_KEYBOARD
 		if _, err := bot_api.Send(msg); err != nil {
-			log.Print("Error occurred during send request for book title")
+			log.Printf("Error occurred during send request for book title - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 			continue
 		}

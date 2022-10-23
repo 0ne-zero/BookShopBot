@@ -16,7 +16,7 @@ func Start_CommandHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		return
 	}
 	if _, err = bot_api.Send(msg); err != nil {
-		log.Print("Error occurred during send start message to normal user")
+		log.Printf("Error occurred during send start message to normal user - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 	}
 }
@@ -30,7 +30,7 @@ func Admin_Start_CommandHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Updat
 	}
 	msg.ReplyMarkup = keyboard
 	if _, err = bot_api.Send(msg); err != nil {
-		log.Print("Error occurred during send start message to normal user")
+		log.Printf("Error occurred during send start message to normal user - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 	}
 }
