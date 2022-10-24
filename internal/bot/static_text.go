@@ -58,6 +58,8 @@ const (
 	BOOK_ADDED_TO_CART_MESSAGE                   = "کتاب به سبد خرید اضافه شد."
 	SWITCH_TO_PV_FORMAT                          = "https://t.me/%s"
 	ADDRESS_ADDED_MESSAGE                        = "ادرس شما تنظیم شد."
+	ADD_BOOK_FROM_CART_MESSAGE                   = "با کلیک بر روی دکمه ی زیر میتوانید کتاب را به سبد خرید اضافه کنید !"
+	REMOVE_BOOK_FROM_CART_MESSAGE                = "با کلیک بر روی دکمه ی زیر میتوانید کتاب را از سبد خرید حذف کنید !"
 	// Errors
 	UNKNOWN_ERROR                      = "مشکلی پیش امد, دوباره امتحان کنید."
 	ENTERED_VALUE_IS_INVALID_ERROR     = "مقدار وارد شده نامعتبر است."

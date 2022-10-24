@@ -176,6 +176,7 @@ func formatBookInformation(book_id int) (string, error) {
 		BOOK_INFORMATION_FORMAT, book.Title, book.Author, book.Translator, book.NumberOfPages, book.Genre,
 		censor_status, book.CoverType.Type, book.BookSize.Name, book.BookAgeCategory.Category, fmt.Sprint(book.GoodReadsScore),
 		fmt.Sprint(book.ArezoScore), book.Publisher, book.PublishDate, book.ISBN, fmt.Sprint(book.Price), BOT_USERNAME)
+	formatted_info += fmt.Sprintf("\n@%s", BOT_USERNAME)
 	return formatted_info, nil
 }
 func GetGoodreadsScoreByISBN(isbn string) (string, error) {

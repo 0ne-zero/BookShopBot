@@ -2,6 +2,7 @@ package db_action
 
 import (
 	"log"
+	"strings"
 
 	"github.com/0ne-zero/BookShopBot/internal/database"
 	"github.com/0ne-zero/BookShopBot/internal/database/model"
@@ -318,6 +319,20 @@ func GetBookAuthorByID(book_id int) (string, error) {
 	var author string
 	err := db.Model(&model.Book{}).Where("id = ?", book_id).Select("author").Scan(&author).Error
 	return author, err
+}
+func GetBookPicturesPath(book_id int) ([]string, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var raw_pics_path string
+	err := db.Model(&model.Book{}).Where("id = ?", book_id).Select("pictures").Scan(&raw_pics_path).Error
+	if err != nil {
+		return nil, err
+	}
+	// Seperate paths with "|" character
+	pics_path := strings.Split(raw_pics_path, "|")
+	return pics_path, nil
 }
 func DeleteBookByID(book_id int) error {
 	db := database.InitializeOrGetDB()
