@@ -13,8 +13,8 @@ type Base struct {
 }
 type User struct {
 	Base
-	TelegramUsername string `gorm:"NOT NULL;"`
-	TelegramUserID   int    `gorm:"NOT NULL;"`
+	UserTelegramUsername string `gorm:"NOT NULL;"`
+	UserTelegramID       int    `gorm:"NOT NULL;"`
 	// User has one Address
 	Address Address
 	// User has one Cart

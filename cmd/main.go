@@ -56,7 +56,7 @@ func main() {
 			if err != nil {
 				log.Printf("Error occurred during check user already exists in database - %s", err.Error())
 			} else if !is_exists {
-				err := db_action.AddUser(&model.User{TelegramUserID: int(from.ID), TelegramUsername: from.UserName})
+				err := db_action.AddUser(&model.User{UserTelegramID: int(from.ID), UserTelegramUsername: from.UserName})
 				if err != nil {
 					log.Printf("Error occurred during add user to database - %s", err.Error())
 				}
