@@ -1,5 +1,7 @@
 package db_action
 
+import "time"
+
 type CartInformationForCalculateShipmentCost struct {
 	SendProvince string               `gorm:"column:Province"`
 	SendCity     string               `gorm:"column:City"`
@@ -8,4 +10,17 @@ type CartInformationForCalculateShipmentCost struct {
 type BookPriceAndWeight struct {
 	Price  float32
 	Weight float32
+}
+type ShowOrder struct {
+	OrderedAt    *time.Time
+	TotalPrice   float32
+	Status       string
+	TrackingCode string
+	Books        []OrderBook
+}
+type OrderBook struct {
+	ID     uint
+	Title  string
+	Author string
+	Price  float32
 }

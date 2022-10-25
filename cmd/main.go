@@ -74,8 +74,14 @@ func main() {
 				bot.DeleteBookFromCart_InlineKeyboardHandler(bot_api, &update)
 			case *data == bot.BUY_CART_KEYBOARD_ITEM_TITLE:
 				bot.BuyCart_InlineKeyboardHandler(bot_api, &update)
-			case *data == bot.SET_ADDRESS_KEYBOARD_ITEM_TITLE:
+			case *data == bot.ADDRESS_KEYBOARD_ITEM_TITLE:
+				bot.Address_InlineKeyboardHandler(bot_api, &update, &updates)
+			case *data == bot.CLICK_FOR_EDIT_ADDRESS_INLINE_KEYBOARD_ITEM_TITLE:
 				bot.SetAddress_InlineKeyboardHandler(bot_api, &update, &updates)
+			case *data == bot.CANCEL_KEYBOARD_ITEM_TITLE:
+				bot.BackToMainMenu(bot_api, &update)
+			case *data == bot.I_PAID_CART_INLINE_KEYBOARD_ITEM_TITLE:
+				bot.IPaidCart_InlineKeyboardHandler(bot_api, &update)
 			}
 		}
 		// Is admin
@@ -135,7 +141,7 @@ func user_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update
 	case bot.CONTACT_ADMIN_KEYBOARD_ITEM_TITLE:
 		bot.ContactAdmin_KeyboardHandler(bot_api, update)
 		// Set address handler
-	case bot.SET_ADDRESS_KEYBOARD_ITEM_TITLE:
+	case bot.ADDRESS_KEYBOARD_ITEM_TITLE:
 		bot.SetAddress_KeyboardHandler(bot_api, update, updates)
 		// Back to main menu (admin panel) handler
 	case bot.MAIN_MENU_ITEM_TITLE:
@@ -181,7 +187,7 @@ func admin_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Updat
 	case bot.SEARCH_BOOK_KEYBOARD_ITEM_TITLE:
 		bot.SearchBookByTitle_KeyboardHandler(bot_api, update)
 		// Go to set address
-	case bot.SET_ADDRESS_KEYBOARD_ITEM_TITLE:
+	case bot.ADDRESS_KEYBOARD_ITEM_TITLE:
 		bot.SetAddress_KeyboardHandler(bot_api, update, updates)
 		// Contact to admin handler
 	case bot.CONTACT_ADMIN_KEYBOARD_ITEM_TITLE:

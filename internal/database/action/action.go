@@ -1,8 +1,10 @@
 package db_action
 
 import (
+	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/0ne-zero/BookShopBot/internal/database"
 	"github.com/0ne-zero/BookShopBot/internal/database/model"
@@ -63,7 +65,7 @@ func IsUserCartEmptyByUserTelegramID(user_telegram_id int) (bool, error) {
 		return false, err
 	}
 	// User cart is empty
-	if cart.CartItems == nil {
+	if len(cart.CartItems) < 1 {
 		return true, nil
 	}
 	// User cart isn't empty
@@ -74,8 +76,25 @@ func DeleteBookFromCart(book_id, cart_id int) error {
 	if db == nil {
 		log.Fatal("Cannot connect to the database")
 	}
+	// Get current cart total price
+	var current_total_price float32
+	err := db.Model(&model.Cart{}).Where("id = ?", cart_id).Select("total_price").Scan(&current_total_price).Error
+	if err != nil {
+		return err
+	}
+	// Get book price
+	book_price, err := GetBookPriceByBookID(book_id)
+	if err != nil {
+		return err
+	}
+	// Update cart total price
+	err = db.Model(&model.Cart{}).Where("id = ?", cart_id).Update("total_price", current_total_price-book_price).Error
+	if err != nil {
+		return err
+	}
+	// Delete from cart
 	var cart_item_id int
-	err := db.Model(&model.CartItem{}).Select("id").Where("cart_id = ? AND book_id = ?", cart_id, book_id).Scan(&cart_item_id).Error
+	err = db.Model(&model.CartItem{}).Select("id").Where("cart_id = ? AND book_id = ?", cart_id, book_id).Scan(&cart_item_id).Error
 	if err != nil {
 		return err
 	}
@@ -111,6 +130,120 @@ func AddBook(b *model.Book) error {
 	}
 	return db.Create(b).Error
 }
+func GetUserOrdersByTelegramID(user_telegram_id int) ([]ShowOrder, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	// Get user id
+	user_id, err := GetUserIDByTelegramUserID(user_telegram_id)
+	if err != nil {
+		return nil, err
+	}
+	// Get user orders id
+	orders_id, err := getUserOrdersIDByUserID(user_id)
+	if err != nil {
+		return nil, err
+	}
+	if len(orders_id) < 1 {
+		return nil, fmt.Errorf("user doesn't have any order")
+	}
+	var show_orders = make([]ShowOrder, len(orders_id))
+	for i, order_id := range orders_id {
+		show_order, err := getOrderBasicInfoByOrderID(order_id)
+		if err != nil {
+			return nil, err
+		}
+		books_info, err := getOrderBooksInfo(order_id)
+		if err != nil {
+			return nil, err
+		}
+		show_order.Books = books_info
+		show_orders[i] = *show_order
+	}
+	return show_orders, nil
+}
+func ConvertOrderStatusIDToOrderStatus(order_status_id int) (string, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var order_status string
+	err := db.Model(&model.OrderStatus{}).Where("id = ?", order_status_id).Select("status").Scan(&order_status).Error
+	return order_status, err
+}
+func getOrderBasicInfoByOrderID(order_id int) (*ShowOrder, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	// Get order
+	var order model.Order
+	err := db.Model(&model.Order{}).Where("id = ?", order_id).Preload("Cart").Find(&order).Error
+	if err != nil {
+		return nil, err
+	}
+	// Fill show order by order information
+	var show_order ShowOrder
+	show_order.TotalPrice = order.Cart.TotalPrice
+	status, err := ConvertOrderStatusIDToOrderStatus(int(order.OrderStatusID))
+	if err != nil {
+		return nil, err
+	}
+	show_order.Status = status
+	created_at, err := getOrderCreateTime(order_id)
+	if err != nil {
+		return nil, err
+	}
+	show_order.OrderedAt = created_at
+	// TODO: get tracking id
+	return &show_order, nil
+}
+func getOrderCreateTime(order_id int) (*time.Time, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var created_at *time.Time
+	err := db.Model(&model.Order{}).Where("id = ?", order_id).Select("created_at").Scan(&created_at).Error
+	return created_at, err
+}
+func getUserOrdersIDByUserID(user_id int) ([]int, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var ids []int
+	err := db.Model(&model.Order{}).Where("user_id = ?", user_id).Select("id").Scan(&ids).Error
+	return ids, err
+}
+
+// Returns nil,nil, If order doesn't have any book
+func getOrderBooksInfo(order_id int) ([]OrderBook, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var order model.Order
+	err := db.Model(&order).Where("id = ?", order_id).Preload("Cart.CartItems.Book").Find(&order).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(order.Cart.CartItems) < 1 {
+		return nil, nil
+	}
+	var books = make([]OrderBook, len(order.Cart.CartItems))
+	for i := range order.Cart.CartItems {
+		item := OrderBook{
+			ID:     order.Cart.CartItems[i].BookID,
+			Title:  order.Cart.CartItems[i].Book.Title,
+			Author: order.Cart.CartItems[i].Book.Author,
+			Price:  order.Cart.CartItems[i].Book.Price,
+		}
+		books[i] = item
+	}
+	return books, nil
+}
 func GetOrderStatusID(order_id int) (int, error) {
 	db := database.InitializeOrGetDB()
 	if db == nil {
@@ -134,11 +267,12 @@ func AddAddress(addr *model.Address, user_telegram_id int) error {
 	if db == nil {
 		log.Fatal("Cannot connect to the database")
 	}
-	// Set user id of address
+	// Get user id
 	user_id, err := GetUserIDByTelegramUserID(user_telegram_id)
 	if err != nil {
 		return err
 	}
+	// Set user id of address
 	addr.UserID = uint(user_id)
 	return db.Create(addr).Error
 }
@@ -237,6 +371,34 @@ func GetBookByID(book_id int) (*model.Book, error) {
 	var b model.Book
 	err := db.Model(&model.Book{}).Preload("CoverType").Preload("BookSize").Preload("BookAgeCategory").Where("id = ?", book_id).Find(&b).Error
 	return &b, err
+}
+func AddOrder(user_telegram_id int) error {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	// Get user id
+	user_id, err := GetUserIDByTelegramUserID(user_telegram_id)
+	if err != nil {
+		return err
+	}
+	// Get user cart id
+	cart_id, err := GetUserCartIDByTelegramUserID(user_telegram_id)
+	if err != nil {
+		return err
+	}
+	// Create order
+	order := &model.Order{
+		UserID:        uint(user_id),
+		CartID:        uint(cart_id),
+		OrderStatusID: IN_CONFIRMATION_QUEUE_ORDER_STATUS_ID,
+	}
+	err = db.Create(order).Error
+	if err != nil {
+		return err
+	}
+	// Update cart mode to Ordered
+	return db.Model(&model.Cart{}).Where("id = ?", cart_id).Update("is_ordered", true).Error
 }
 func GetBookTitleByID(book_id int) (string, error) {
 	db := database.InitializeOrGetDB()

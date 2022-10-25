@@ -14,6 +14,7 @@ func StartQueryHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	if err != nil {
 		log.Printf("Error occurred druing send book information - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 	}
 
 	// Send Keyboard message to add book to cart or remove it from cart if exists in cart
@@ -29,6 +30,7 @@ func StartQueryHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	if err != nil {
 		log.Printf("Error occurred during extract book id from start query - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 	}
 	var msg tgbotapi.MessageConfig
 	// Select keyboard for book
@@ -81,19 +83,24 @@ func sendBookInformation(update *tgbotapi.Update, bot_api *tgbotapi.BotAPI) (int
 	// Craete book pictures, and set caption
 	var files []interface{}
 	for i := range pics_path {
+		if pics_path[i] == "" {
+			continue
+		}
 		item := tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(pics_path[i]))
-		item.Caption = book_formatted_info
+		if i == 0 {
+			item.Caption = book_formatted_info
+		}
 		files = append(files, item)
 	}
-
 	// Create message
 	msg := tgbotapi.NewMediaGroup(update.FromChat().ChatConfig().ChatID, files)
 
 	// Send book information
-	if res, err := bot_api.Send(msg); err != nil {
+	if res, err := bot_api.Request(msg); err != nil {
 		log.Printf("Error occurred during send book information - %s", err.Error())
 		return 0, err
 	} else {
-		return res.MessageID, nil
+		sent_msg_id, err := extractMessageIDFromTelegramRawResponse(string(res.Result))
+		return sent_msg_id, err
 	}
 }

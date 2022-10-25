@@ -151,15 +151,27 @@ func getInputFromUser(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates
 }
 
 func IsStartQuery(text string) bool {
-	if strings.Contains(text, "https://t.me/Xbookshopbot/?start=") {
+	if strings.Contains(text, "https://t.me/Xbookshopbot/?start=") || strings.Contains(text, "/start") && text != "/start" {
 		return true
 	} else {
 		return false
 	}
 }
 func extractBookIDFromStartQuery(query string) (int, error) {
-	id_str := strings.Split(query, "=")[1]
-	return strconv.Atoi(id_str)
+	splitted := strings.Split(query, "=")
+	var id string
+	// If query doesn't have "=" character, It's diffrent start query mode
+	if len(splitted) == 1 {
+		splitted = strings.Split(query, " ")
+		if len(splitted) == 1 {
+			return 0, fmt.Errorf("query doesn't have id or we cannot extract id")
+		}
+		id = splitted[1]
+	} else {
+		id = splitted[1]
+	}
+
+	return strconv.Atoi(id)
 }
 func formatBookInformation(book_id int) (string, error) {
 	book, err := db_action.GetBookByID(book_id)
@@ -176,7 +188,6 @@ func formatBookInformation(book_id int) (string, error) {
 		BOOK_INFORMATION_FORMAT, book.Title, book.Author, book.Translator, book.NumberOfPages, book.Genre,
 		censor_status, book.CoverType.Type, book.BookSize.Name, book.BookAgeCategory.Category, fmt.Sprint(book.GoodReadsScore),
 		fmt.Sprint(book.ArezoScore), book.Publisher, book.PublishDate, book.ISBN, fmt.Sprint(book.Price), BOT_USERNAME)
-	formatted_info += fmt.Sprintf("\n@%s", BOT_USERNAME)
 	return formatted_info, nil
 }
 func GetGoodreadsScoreByISBN(isbn string) (string, error) {
@@ -383,7 +394,7 @@ func makeCartMessage(user_telegram_id int) (string, error) {
 			log.Printf("Error occurred during get book author by book id - %s", err.Error())
 			return "", err
 		}
-		item := fmt.Sprintf("%d- <a href=\"%s\">%s (%s)\n</a>", i, fmt.Sprintf(BOT_START_QUERY, BOT_USERNAME, books_id[i]), book_name, book_author)
+		item := fmt.Sprintf("%d- <a href=\"%s\">%s (%s)\n</a>", i+1, fmt.Sprintf(BOT_START_QUERY, BOT_USERNAME, books_id[i]), book_name, book_author)
 		// Append item to message
 		message += item
 	}
@@ -393,7 +404,7 @@ func makeCartMessage(user_telegram_id int) (string, error) {
 	if err != nil {
 		return "", nil
 	}
-	message += "\n" + fmt.Sprintf("قیمت کل: %s\n", fmt.Sprint(books_price))
+	message += "\n" + fmt.Sprintf("قیمت کتاب ها:  %s\n", fmt.Sprint(books_price))
 	// Create message footer
 	message += "\n" + CART_MESSAGE_FOOTER
 	// Add bot username at the end of message
@@ -412,7 +423,7 @@ func makeBuyCartMessage(user_telegram_id int) (string, error) {
 		return "", fmt.Errorf("STORE_CART_NUMBER_OWNER_FULLNAME is empty")
 	}
 	// Craete message and append header to it
-	var message string = BUY_CART_MESSAGE_HEADER
+	var message string = BUY_CART_MESSAGE_HEADER_MESSAGE
 	// Append card information to message
 	message += fmt.Sprintf("\n\n%s\n%s\n", fmt.Sprintf("شماره کارت فروشگاه: %s", store_cart_number), fmt.Sprintf("مالک شماره کارت: %s", store_cart_number_owner_fullname))
 
@@ -424,10 +435,13 @@ func makeBuyCartMessage(user_telegram_id int) (string, error) {
 	// Append total price to message
 	message += "\n" + fmt.Sprintf("قیمت کتاب ها: : %s\nهزینه ی ارسال  : %s\n<b>قیمت نهایی</b>: %s\n", fmt.Sprint(books_price), fmt.Sprint(shipment_cost), fmt.Sprint(books_price+shipment_cost))
 	// Append footer to message
-	message += BUY_CART_MESSAGE_FOOTER
+	message += BUY_CART_MESSAGE_FOOTER_MESSAGE
 	// Add bot username at the end of message
 	message += fmt.Sprintf("\n\n@%s", BOT_USERNAME)
 	return message, nil
+}
+func makeShowOrdersMessage(user_telegram_id int) {
+	//var message string = SHOW_ORDERS_HEADER_MESSAGE
 }
 
 // Calculate price of cart (books + shipment cost)
@@ -464,6 +478,7 @@ func makeMainKeyboard(user_telegram_id int) (*tgbotapi.ReplyKeyboardMarkup, erro
 				tgbotapi.NewKeyboardButton(ADMIN_ADD_BOOK_KEYBOARD_ITEM_TITLE),
 			),
 			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(FAQ_KEYBOARD_ITEM_TITLE),
 				tgbotapi.NewKeyboardButton(ADMIN_BACK_TO_USER_PANEL_ITEM_TITLE)),
 		)
 		return &keyboard, nil
@@ -477,7 +492,7 @@ func makeMainKeyboard(user_telegram_id int) (*tgbotapi.ReplyKeyboardMarkup, erro
 			keyboard := tgbotapi.NewReplyKeyboard(
 				tgbotapi.NewKeyboardButtonRow(
 					tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
-					tgbotapi.NewKeyboardButton(SET_ADDRESS_KEYBOARD_ITEM_TITLE),
+					tgbotapi.NewKeyboardButton(ADDRESS_KEYBOARD_ITEM_TITLE),
 					tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
 				),
 				tgbotapi.NewKeyboardButtonRow(
@@ -492,7 +507,7 @@ func makeMainKeyboard(user_telegram_id int) (*tgbotapi.ReplyKeyboardMarkup, erro
 			keyboard := tgbotapi.NewReplyKeyboard(
 				tgbotapi.NewKeyboardButtonRow(
 					tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
-					tgbotapi.NewKeyboardButton(SET_ADDRESS_KEYBOARD_ITEM_TITLE),
+					tgbotapi.NewKeyboardButton(ADDRESS_KEYBOARD_ITEM_TITLE),
 					tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
 				),
 				tgbotapi.NewKeyboardButtonRow(
@@ -501,13 +516,12 @@ func makeMainKeyboard(user_telegram_id int) (*tgbotapi.ReplyKeyboardMarkup, erro
 			return &keyboard, nil
 		}
 	}
-	return nil, fmt.Errorf("Technically isn't possible user not be admin neither admin")
 }
 func makeAdminUserPanelKeyboard() *tgbotapi.ReplyKeyboardMarkup {
 	var keyboard = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
-			tgbotapi.NewKeyboardButton(SET_ADDRESS_KEYBOARD_ITEM_TITLE),
+			tgbotapi.NewKeyboardButton(ADDRESS_KEYBOARD_ITEM_TITLE),
 			tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
 		),
 		tgbotapi.NewKeyboardButtonRow(
@@ -557,4 +571,13 @@ func makeBookAgeCategoryKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
 	}
 	var keyboard = tgbotapi.NewInlineKeyboardMarkup(rows...)
 	return &keyboard, nil
+}
+func extractMessageIDFromTelegramRawResponse(raw_response string) (int, error) {
+	_, after, found := strings.Cut(raw_response, "\"message_id\":")
+	if !found {
+		return 0, fmt.Errorf("message_id field not found")
+	}
+	end_id_index := strings.Index(after, ",")
+	id_str := after[:end_id_index]
+	return strconv.Atoi(id_str)
 }

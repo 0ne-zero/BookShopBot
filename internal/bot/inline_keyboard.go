@@ -20,7 +20,7 @@ var BUY_CART_INLINE_KEYBOARD = tgbotapi.NewInlineKeyboardMarkup(
 )
 var SET_ADDRESS_INLINE_KEYBOARD = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData(SET_ADDRESS_KEYBOARD_ITEM_TITLE, SET_ADDRESS_KEYBOARD_ITEM_TITLE)),
+		tgbotapi.NewInlineKeyboardButtonData(ADDRESS_KEYBOARD_ITEM_TITLE, ADDRESS_KEYBOARD_ITEM_TITLE)),
 )
 var I_PAID_CART = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
