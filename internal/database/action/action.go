@@ -567,3 +567,12 @@ func GetBookAgeCategoryByID(id int) (*model.BookAgeCategory, error) {
 	err := db.Model(&category).Where("id = ?", id).Find(&category).Error
 	return &category, err
 }
+func GetInConfirmationQueueOrders() ([]model.Order, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var orders []model.Order
+	err := db.Model(&model.Order{}).Where("order_status_id = ?", IN_CONFIRMATION_QUEUE_ORDER_STATUS_ID).Find(&orders).Error
+	return orders, err
+}
