@@ -97,6 +97,7 @@ func SetAddress_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Updat
 			return
 		}
 		message += fmt.Sprintf(SHOW_USER_ADDRESS_FORMATTED, exists_addr.Country, exists_addr.Province, exists_addr.City, exists_addr.Street, exists_addr.BuildingNumber, exists_addr.PostalCode, exists_addr.PhoneNumber, exists_addr.Description)
+		message += fmt.Sprintf("\n@%s", BOT_USERNAME)
 		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
 		msg.ReplyMarkup = FOR_EDIT_ADDRESS_INLINE_KEYBOARD
 		// Send edit address message
@@ -105,58 +106,8 @@ func SetAddress_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Updat
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 			return
 		}
-		// Wait for user response
-		for inner_update := range *updates {
-			if inner_update.CallbackQuery != nil && inner_update.CallbackData() != "" {
-				if inner_update.CallbackData() == CLICK_FOR_EDIT_ADDRESS_INLINE_KEYBOARD_ITEM_TITLE {
-					// Get user address from user
-					addr, err := getUserAddressInformationFromUser(bot_api, update, updates)
-					if err != nil {
-						log.Printf("Error occurred during get user address form user - %s", err.Error())
-						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
-					}
-					// Add address to user address
-					err = db_action.AddAddress(addr, int(update.SentFrom().ID))
-					if err != nil {
-						log.Printf("Error occurred during add user address - %s", err.Error())
-						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
-					}
-					// Send address saved message to user
-					msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, ADDRESS_ADDED_MESSAGE)
-					if _, err = bot_api.Send(msg); err != nil {
-						log.Printf("Error occurred during send address addded/setted message - %s", err.Error())
-						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
-					}
-				} else if inner_update.CallbackData() == CANCEL_KEYBOARD_ITEM_TITLE {
-					BackToMainMenu(bot_api, update)
-					return
-				}
-			} else {
-				SendError(bot_api, update.FromChat().ChatConfig().ChatID, ENTERED_VALUE_IS_INVALID_ERROR)
-				BackToMainMenu(bot_api, update)
-				return
-			}
-		}
-
 	} else {
-		// Get user address from user
-		addr, err := getUserAddressInformationFromUser(bot_api, update, updates)
-		if err != nil {
-			log.Printf("Error occurred during get user address form user - %s", err.Error())
-			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
-		}
-		// Add address to user address
-		err = db_action.AddAddress(addr, int(update.SentFrom().ID))
-		if err != nil {
-			log.Printf("Error occurred during add user address - %s", err.Error())
-			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
-		}
-		// Send address saved message to user
-		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, ADDRESS_ADDED_MESSAGE)
-		if _, err = bot_api.Send(msg); err != nil {
-			log.Printf("Error occurred during send address addded/setted message - %s", err.Error())
-			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
-		}
+		SetAddress_InlineKeyboardHandler(bot_api, update, updates)
 	}
 }
 func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
@@ -643,6 +594,17 @@ func Admin_BackToAdminPanel_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tg
 }
 func Admin_BackToUserPanel_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, ADMIN_START_TEXT)
+	msg.ReplyMarkup = makeAdminUserPanelKeyboard()
+	if _, err := bot_api.Send(msg); err != nil {
+		log.Printf("Error occurred during send start message to normal user - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+	}
+}
+func ShowOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	//
+}
+func FAQ_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, FAQ_MESSAGE)
 	msg.ReplyMarkup = makeAdminUserPanelKeyboard()
 	if _, err := bot_api.Send(msg); err != nil {
 		log.Printf("Error occurred during send start message to normal user - %s", err.Error())

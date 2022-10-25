@@ -1,2 +1,5 @@
 empty cart when user ordered
 complete shipment cost function
+complete i paid request
+show user orders
+add tracking code to order

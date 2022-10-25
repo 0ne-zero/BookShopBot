@@ -32,7 +32,7 @@ func SearchBookByTitle_InlineQueryHandler(bot_api *tgbotapi.BotAPI, update *tgbo
 		// No result found
 		if books_len == 0 {
 			item := tgbotapi.NewInlineQueryResultArticle(update.InlineQuery.ID, NO_RESULT_FOUND_ERROR, fmt.Sprintf(NO_RESULT_FOUND_DESCRIPTION_FORMAT_ERROR, query))
-			item.Description = NO_RESULT_FOUND_DESCRIPTION_FORMAT_ERROR
+			item.Description = fmt.Sprintf(NO_RESULT_FOUND_DESCRIPTION_FORMAT_ERROR, query)
 			result_config := tgbotapi.InlineConfig{
 				InlineQueryID: update.InlineQuery.ID,
 				IsPersonal:    true,
