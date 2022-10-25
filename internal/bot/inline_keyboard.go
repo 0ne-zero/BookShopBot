@@ -27,3 +27,10 @@ var I_PAID_CART = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardButtonData(I_PAID_CART_INLINE_KEYBOARD_ITEM_TITLE, I_PAID_CART_INLINE_KEYBOARD_ITEM_TITLE),
 	),
 )
+var CONFIRM_OR_REJECT_ORDER_INLINE_KEYBOARD = tgbotapi.NewInlineKeyboardMarkup(
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData(REJECT_ORDER, REJECT_ORDER),
+		tgbotapi.NewInlineKeyboardButtonData(CONFIRM_ORDER, REJECT_ORDER),
+	),
+	tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(CANCEL_KEYBOARD_ITEM_TITLE, CANCEL_KEYBOARD_ITEM_TITLE)),
+)

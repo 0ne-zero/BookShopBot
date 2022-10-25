@@ -575,7 +575,64 @@ func BackToMainMenu(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	// Call manualy start command handler
 	Start_CommandHandler(bot_api, update)
 }
-func Admin_ConfirmOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+func Admin_ConfirmOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
+	// Get in confirmation queue orders
+	orders, err := db_action.GetInConfirmationQueueOrders()
+	if err != nil {
+		log.Printf("Error occurred during get in confirmation queue orders - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+	}
+	for i := range orders {
+		// Get user telegram id
+		user_telegram_id, err := db_action.GetUserTelegramIDByUserID(int(orders[i].UserID))
+		if err != nil {
+			log.Printf("Error occurred during get user telegram id by user id - %s", err.Error())
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		}
+		// Create msg message
+		message, err := makeCartMessage(user_telegram_id)
+		if err != nil {
+			log.Printf("Error occurred during make cart message for confirm or reject - %s", err.Error())
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		}
+		// Create msg
+		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
+		msg.ReplyMarkup = CONFIRM_OR_REJECT_ORDER_INLINE_KEYBOARD
+		// Send msg to user
+		if _, err := bot_api.Send(msg); err != nil {
+			log.Printf("Error occureed during send message to confirm or reject order - %s", err.Error())
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		}
+		// Wait for user choose
+		for inner_update := range *updates {
+			if inner_update.CallbackQuery != nil && inner_update.CallbackQuery.Data != "" {
+				// User canceled confirmation orders
+				if inner_update.CallbackQuery.Data == CANCEL_KEYBOARD_ITEM_TITLE {
+					msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, CONFIRMATION_OR_REJECTION_ORDRES_CANCELED_MESSAGE)
+					if _, err = bot_api.Send(msg); err != nil {
+						log.Printf("Error occurred during send confirmation or rejection of orders canceled - %s", err.Error())
+						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+					}
+					// User confirmed order
+				} else if inner_update.CallbackQuery.Data == CONFIRM_ORDER {
+					msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, ORDER_CONFIRMED_MESSAGE)
+					if _, err = bot_api.Send(msg); err != nil {
+						log.Printf("Error occurred during send order confirmed message - %s", err.Error())
+						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+					}
+					// User rejected order
+				} else if inner_update.CallbackQuery.Data == REJECT_ORDER {
+					msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, ORDER_REJECTED_MESSAGE)
+					if _, err = bot_api.Send(msg); err != nil {
+						log.Printf("Error occurred during send order rejected message - %s", err.Error())
+						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+					}
+				}
+			}
+			break
+		}
+
+	}
 }
 func Admin_Statistics_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 }

@@ -499,6 +499,7 @@ func makeMainKeyboard(user_telegram_id int) (*tgbotapi.ReplyKeyboardMarkup, erro
 					tgbotapi.NewKeyboardButton(ORDERS_KEYBOARD_ITEM_TITLE),
 				),
 				tgbotapi.NewKeyboardButtonRow(
+					tgbotapi.NewKeyboardButton(FAQ_KEYBOARD_ITEM_TITLE),
 					tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE)),
 			)
 			return &keyboard, nil
@@ -511,6 +512,7 @@ func makeMainKeyboard(user_telegram_id int) (*tgbotapi.ReplyKeyboardMarkup, erro
 					tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
 				),
 				tgbotapi.NewKeyboardButtonRow(
+					tgbotapi.NewKeyboardButton(FAQ_KEYBOARD_ITEM_TITLE),
 					tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE)),
 			)
 			return &keyboard, nil

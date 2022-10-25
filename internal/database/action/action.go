@@ -576,3 +576,12 @@ func GetInConfirmationQueueOrders() ([]model.Order, error) {
 	err := db.Model(&model.Order{}).Where("order_status_id = ?", IN_CONFIRMATION_QUEUE_ORDER_STATUS_ID).Find(&orders).Error
 	return orders, err
 }
+func GetUserTelegramIDByUserID(user_id int) (int, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var user_telegram_id int
+	err := db.Model(&model.User{}).Where("id = ?", user_id).Select("user_telegram_id").Scan(&user_telegram_id).Error
+	return user_telegram_id, err
+}
