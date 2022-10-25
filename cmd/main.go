@@ -173,7 +173,7 @@ func admin_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Updat
 		bot.Admin_DeleteBook_KeyboardHandler(bot_api, update, updates)
 		// Confirm orders handler
 	case bot.ADMIN_CONFIRM_ORDERS_KEYBOARD_ITEM_TITLE:
-		bot.Admin_ConfirmOrders_KeyboardHandler(bot_api, update)
+		bot.Admin_ConfirmOrders_KeyboardHandler(bot_api, update, updates)
 		// Statistics handler
 	case bot.ADMIN_STATISTICS_KEYBOARD_ITEM_TITLE:
 		bot.Admin_Statistics_KeyboardHandler(bot_api, update)
@@ -192,5 +192,8 @@ func admin_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Updat
 		// Contact to admin handler
 	case bot.CONTACT_ADMIN_KEYBOARD_ITEM_TITLE:
 		bot.ContactAdmin_KeyboardHandler(bot_api, update)
+		// Show user orders
+	case bot.SHOW_ORDERS_KEYBOARD_ITEM_TITLE:
+		bot.ShowUserOrders_KeyboardHandler(bot_api, update)
 	}
 }

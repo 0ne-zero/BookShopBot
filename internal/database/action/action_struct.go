@@ -24,3 +24,8 @@ type OrderBook struct {
 	Author string
 	Price  float32
 }
+type UserOrderForShow struct {
+	OrderTime   *time.Time
+	OrderStatus string
+	Books       []OrderBook
+}

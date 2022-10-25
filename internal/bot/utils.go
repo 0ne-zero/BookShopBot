@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"strings"
 
@@ -18,6 +19,7 @@ import (
 	setting "github.com/0ne-zero/BookShopBot/internal/utils/settings"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	exif_r "github.com/scottleedavis/go-exif-remove"
+	persian_time "github.com/yaa110/go-persian-calendar"
 )
 
 type validateUserinputFunc func(*tgbotapi.Update) error
@@ -109,7 +111,6 @@ func makeBookSizeKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
 	var keyboard = tgbotapi.NewInlineKeyboardMarkup(rows...)
 	return &keyboard, nil
 }
-
 func makeBookKeyboard(book_id int) *tgbotapi.InlineKeyboardMarkup {
 	callback_data := fmt.Sprint(ADD_BOOK_TO_CART_INLINE_KEYBOARD_ITEM_TITLE, "?", book_id)
 	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(ADD_BOOK_TO_CART_INLINE_KEYBOARD_ITEM_TITLE, callback_data)))
@@ -149,7 +150,6 @@ func getInputFromUser(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates
 	}
 	return "", fmt.Errorf("nothing happened")
 }
-
 func IsStartQuery(text string) bool {
 	if strings.Contains(text, "https://t.me/Xbookshopbot/?start=") || strings.Contains(text, "/start") && text != "/start" {
 		return true
@@ -216,7 +216,6 @@ func IsAdmin(user_telegram_id int) bool {
 		return false
 	}
 }
-
 func removeExifFromPhoto(bytes []byte) ([]byte, error) {
 	removed_exif_bytes, err := exif_r.Remove(bytes)
 	if err != nil {
@@ -224,7 +223,6 @@ func removeExifFromPhoto(bytes []byte) ([]byte, error) {
 	}
 	return removed_exif_bytes, nil
 }
-
 func generateRandomBytes(size int) ([]byte, error) {
 	bytes := make([]byte, size)
 	_, err := rand.Read(bytes)
@@ -368,7 +366,6 @@ func getUserAddressInformationFromUser(bot_api *tgbotapi.BotAPI, update *tgbotap
 	}
 	return &addr, nil
 }
-
 func makeCartMessage(user_telegram_id int) (string, error) {
 	var message string
 	// Add message header
@@ -440,8 +437,27 @@ func makeBuyCartMessage(user_telegram_id int) (string, error) {
 	message += fmt.Sprintf("\n\n@%s", BOT_USERNAME)
 	return message, nil
 }
-func makeShowOrdersMessage(user_telegram_id int) {
-	//var message string = SHOW_ORDERS_HEADER_MESSAGE
+func makeShowUserOrdersMessage(user_telegram_id int) (string, error) {
+	// Create message and append header of message
+	var message string = SHOW_ORDERS_HEADER_MESSAGE
+	orders_info, err := db_action.GetUserOrdersForShowByUserTelegramID(user_telegram_id)
+	if err != nil {
+		return "", nil
+	}
+	// Add orders info to message
+	for i := range orders_info {
+		cur_order := orders_info[i]
+		// Add order time and status
+		message += fmt.Sprintf("%d- %s (%s) *%s*", i+1, "جزيیات سفارش ثبت شده در تاریخ :", ConvertTimeToPersian(cur_order.OrderTime), cur_order.OrderStatus)
+		// Add order books to message
+		for i := range cur_order.Books {
+			message += fmt.Sprintf("\n\t%s(%s)", cur_order.Books[i].Title, cur_order.Books[i].Author)
+		}
+		message += "\n\n"
+	}
+	// Append footer of message
+	message += SHOW_ORDERS_FOOTER_MESSAGE
+	return message, nil
 }
 
 // Calculate price of cart (books + shipment cost)
@@ -466,6 +482,11 @@ func calculateCartTotalPrice(user_telegram_id int) (float32, float32, error) {
 }
 func calculateShipmentCost(cart_info *db_action.CartInformationForCalculateShipmentCost) (float32, error) {
 	return 0, nil
+}
+func ConvertTimeToPersian(t *time.Time) string {
+	p_time := persian_time.New(*t)
+	format := fmt.Sprintf("%s-%s-%s", p_time.Year(), p_time.Month(), p_time.Day())
+	return format
 }
 func makeMainKeyboard(user_telegram_id int) (*tgbotapi.ReplyKeyboardMarkup, error) {
 	// Check user is admin
@@ -496,7 +517,7 @@ func makeMainKeyboard(user_telegram_id int) (*tgbotapi.ReplyKeyboardMarkup, erro
 					tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
 				),
 				tgbotapi.NewKeyboardButtonRow(
-					tgbotapi.NewKeyboardButton(ORDERS_KEYBOARD_ITEM_TITLE),
+					tgbotapi.NewKeyboardButton(SHOW_ORDERS_KEYBOARD_ITEM_TITLE),
 				),
 				tgbotapi.NewKeyboardButtonRow(
 					tgbotapi.NewKeyboardButton(FAQ_KEYBOARD_ITEM_TITLE),

@@ -657,9 +657,20 @@ func Admin_BackToUserPanel_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgb
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 	}
 }
-func ShowOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
-	//
+func ShowUserOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	// Make message of msg
+	message, err := makeShowUserOrdersMessage(int(update.SentFrom().ID))
+	if err != nil {
+		log.Printf("Error occurred druing make show user orders message - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+	}
+	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
+	if _, err = bot_api.Send(msg); err != nil {
+		log.Printf("Error occurred during send show user orders message - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+	}
 }
+
 func FAQ_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, FAQ_MESSAGE)
 	msg.ReplyMarkup = makeAdminUserPanelKeyboard()

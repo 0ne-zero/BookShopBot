@@ -558,6 +558,79 @@ func GetBookSizeByID(id int) (*model.BookSize, error) {
 	err := db.Model(&book_size).Where("id = ?", id).Find(&book_size).Error
 	return &book_size, err
 }
+func GetUserOrdersForShowByUserTelegramID(user_telegram_id int) ([]UserOrderForShow, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	// Get user id
+	user_id, err := GetUserIDByTelegramUserID(user_telegram_id)
+	if err != nil {
+		return nil, err
+	}
+	// Get orders id
+	var order_ids []int
+	err = db.Model(&model.Order{}).Where("user_id = ?", user_id).Select("id").Scan(&order_ids).Error
+	if err != nil {
+		return nil, err
+	}
+	// If user doesn't have any order return nil
+	order_ids_len := len(order_ids)
+	if order_ids_len < 1 {
+		return nil, fmt.Errorf("user doesn't have any orders")
+	}
+
+	// Get orders info and fill return data
+	var orders_info = make([]UserOrderForShow, order_ids_len)
+	for i := range order_ids {
+		// Extract order id
+		order_id := order_ids[i]
+		// Get order status
+		order_status, err := GetOrder_OrderStatusByOrderID(order_id)
+		if err != nil {
+			return nil, err
+		}
+		order_created_at, err := getOrderCreateTime(order_id)
+		if err != nil {
+			return nil, err
+		}
+		// Get order books
+		books, err := getOrderBooksInfo(order_id)
+		if err != nil {
+			return nil, err
+		}
+		item := UserOrderForShow{
+			OrderTime:   order_created_at,
+			OrderStatus: order_status,
+			Books:       books,
+		}
+		orders_info[i] = item
+	}
+	return orders_info, nil
+}
+func GetOrder_OrderStatusByOrderID(order_id int) (string, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	order_status_id, err := GetOrderStatusID(order_id)
+	if err != nil {
+		return "", err
+	}
+	order_status, err := getOrderStatusByOrderStatusID(order_status_id)
+	return order_status, err
+}
+
+// Works on OrderStatus model not Order
+func getOrderStatusByOrderStatusID(order_status_id int) (string, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var order_status string
+	err := db.Model(&model.OrderStatus{}).Where("id = ?", order_status_id).Select("status").Scan(order_status).Error
+	return order_status, err
+}
 func GetBookAgeCategoryByID(id int) (*model.BookAgeCategory, error) {
 	db := database.InitializeOrGetDB()
 	if db == nil {

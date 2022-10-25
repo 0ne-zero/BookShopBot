@@ -83,7 +83,7 @@ const (
 	BUY_CART_KEYBOARD_ITEM_TITLE      = "خرید سبد"
 	CONTACT_ADMIN_KEYBOARD_ITEM_TITLE = "ارتباط با ادمین"
 	ADDRESS_KEYBOARD_ITEM_TITLE       = "تنظیم ادرس"
-	ORDERS_KEYBOARD_ITEM_TITLE        = "سفارشات"
+	SHOW_ORDERS_KEYBOARD_ITEM_TITLE   = "سفارشات"
 	FAQ_KEYBOARD_ITEM_TITLE           = "سوالات متداول"
 
 	MAIN_MENU_ITEM_TITLE       = "منو اصلی"
@@ -97,9 +97,6 @@ const (
 	ADMIN_BACK_TO_ADMIN_PANEL_ITEM_TITLE       = "پنل ادمین"
 	IS_CENSORED_STATUS_KEYBOARD_ITEM_TITLE     = "سانسور شده است"
 	IS_NOT_CENSORED_STATUS_KEYBOARD_ITEM_TITLE = "بدون سانسور است"
-	// Miscs
-	BOT_START_QUERY = "https://t.me/%s/?start=%d"
-	CART_IS_EMPTY   = "سبد خرید خالی هست !"
 
 	ENTER_SEARCH_PHRASE_TEXT                 = "وارد کردن عبارت حستجو"
 	ENTER_SEARCH_PHRASE_FOR_DELETE_BOOK_TEXT = "جستجو برای حذف"
@@ -112,4 +109,8 @@ const (
 	I_PAID_CART_INLINE_KEYBOARD_ITEM_TITLE            = "پرداخت کردم"
 	CONFIRM_ORDER                                     = "تایید سفارش"
 	REJECT_ORDER                                      = "رد سفارش"
+
+	// Miscs
+	BOT_START_QUERY = "https://t.me/%s/?start=%d"
+	CART_IS_EMPTY   = "سبد خرید خالی هست !"
 )
