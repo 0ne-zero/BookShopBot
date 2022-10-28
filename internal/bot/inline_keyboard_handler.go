@@ -78,10 +78,12 @@ func BuyCart_InlineKeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 	if have_address, err := db_action.DoesUserHaveAddress(int(update.SentFrom().ID)); err != nil {
 		log.Printf("Error occurred during checking does user have address - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 		// User have address
 	} else if have_address {
 		message, err := makeBuyCartMessage(int(update.SentFrom().ID))
 		if err != nil {
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 			log.Fatalf("Error occurred during make buy cart message - %s", err.Error())
 		}
 		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
@@ -111,12 +113,14 @@ func SetAddress_InlineKeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi
 	if err != nil {
 		log.Printf("Error occurred during get user address form user - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 	}
 	// Add address to user address
 	err = db_action.AddAddress(addr, int(update.SentFrom().ID))
 	if err != nil {
 		log.Printf("Error occurred during add user address - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 	}
 	// Send address saved message to user
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, ADDRESS_ADDED_MESSAGE)
@@ -131,6 +135,7 @@ func IPaidCart_InlineKeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.
 	if err != nil {
 		log.Printf("Error occurred druing add order - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 	}
 	// Send message
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, fmt.Sprintf(ORDER_ADDED_FORMAT, BOT_USERNAME))
@@ -138,10 +143,18 @@ func IPaidCart_InlineKeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.
 	if err != nil {
 		log.Printf("Error occurred during make main keyboard - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 	}
 	msg.ReplyMarkup = keyboard
 	if _, err := bot_api.Send(msg); err != nil {
 		log.Printf("Error occurred during send order added message - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
+	}
+	// Empty user cart
+	err = db_action.EmptyUserCart(int(update.SentFrom().ID))
+	if err != nil {
+		log.Printf("Error occurred during emtpy user cart - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 	}
 }

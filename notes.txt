@@ -1,8 +1,4 @@
 empty cart when user ordered
 complete shipment cost function
-complete i paid request - done
-show user orders - done
 add tracking code to order
-send message to user about their order confirmed or rejected - done
-change status of order when confirmed or rejected - done
 armanveysi id = 1721351376

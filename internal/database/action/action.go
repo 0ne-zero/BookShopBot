@@ -651,3 +651,37 @@ func ChangeOrderStatus(order_id int, order_status_id OrderStatus) error {
 	err := db.Model(&model.Order{}).Where("id = ?", order_id).Update("order_status_id", order_status_id).Error
 	return err
 }
+func EmptyUserCart(user_telegram_id int) error {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+
+	cart_id, err := GetUserCartIDByTelegramUserID(user_telegram_id)
+	if err != nil {
+		return err
+	}
+	var cart_items_id []int
+	err = db.Model(model.CartItem{}).Where("cart_id = ?", cart_id).Select("id").Scan(&cart_items_id).Error
+	if err != nil {
+		return err
+	}
+	err = deleteCartItemsByID(cart_items_id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func deleteCartItemsByID(cart_items_id []int) error {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	for i := 0; i < len(cart_items_id); i++ {
+		err := db.Delete(&model.CartItem{Base: model.Base{ID: i}}).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
