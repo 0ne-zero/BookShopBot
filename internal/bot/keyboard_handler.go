@@ -35,12 +35,14 @@ func Cart_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	if empty, err := db_action.IsUserCartEmptyByUserTelegramID(int(update.SentFrom().ID)); err != nil {
 		log.Printf("Error occurred during check user cart is empty - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 		// User cart is empty
 	} else if empty {
 		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, CART_IS_EMPTY)
 		if _, err := bot_api.Send(msg); err != nil {
 			log.Printf("Error occurred during send cart is empty message - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+			return
 		}
 		// User cart isn't empty
 	} else {
@@ -49,6 +51,7 @@ func Cart_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		if err != nil {
 			log.Printf("Error occurred during make buy cart message - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+			return
 		}
 		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
 		msg.ReplyMarkup = BUY_CART_INLINE_KEYBOARD
@@ -58,7 +61,6 @@ func Cart_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 		}
 	}
-
 }
 func ContactAdmin_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, CONTACT_TO_ADMIN_MESSAGE)
@@ -67,9 +69,11 @@ func ContactAdmin_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Upd
 	if err != nil {
 		log.Printf("Error occurred during make contact to admin inline keyboard - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 	}
 	if _, err := bot_api.Send(msg); err != nil {
 		log.Printf("Error occurred during send contact to admin message - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 	}
 }
 func SetAddress_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
@@ -79,6 +83,7 @@ func SetAddress_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Updat
 	if user_have_address, err = db_action.DoesUserHaveAddress(int(update.SentFrom().ID)); err != nil {
 		log.Printf("Error occurred during check user have address - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 	}
 	// If user already have address show their address and ask for set again it
 	if user_have_address {
@@ -123,6 +128,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 		if _, err := bot_api.Send(msg); err != nil {
 			log.Printf("Error occurred during send book picutes request - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+			continue
 		}
 		for inner_update := range *updates {
 			if inner_update.Message.Document != nil {
@@ -138,6 +144,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 				if err != nil {
 					log.Printf("Error occurred during download and save image - %s", err.Error())
 					SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+					continue
 				}
 				// Add path to book pictures path
 				book.Pictures += pic_path + "|"
@@ -158,6 +165,7 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 				if err != nil {
 					log.Printf("Error occurred during download and save image - %s", err.Error())
 					SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+					continue
 				}
 				// Add path to book pictures path
 				book.Pictures += pic_path + "|"
@@ -171,12 +179,14 @@ func Admin_AddBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Up
 		if err != nil {
 			log.Printf("Error occurred during get book weight - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+			continue
 		}
 		// Convert response to float from string
 		weight_float, err := strconv.ParseFloat(weight_str, 32)
 		if err != nil {
 			log.Printf("Error occurred during convert string weight to float32 weight - %s", err.Error())
 			SendError(bot_api, update.FromChat().ChatConfig().ChatID, ENTERED_NON_NUMBER_VALUE_ERROR)
+			continue
 		}
 		book.Weight = float32(weight_float)
 		input_fetched = true
@@ -536,6 +546,7 @@ func Admin_DeleteBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi
 	if _, err := bot_api.Send(msg); err != nil {
 		log.Printf("Error occurred during send search book for delete - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 	}
 	// Get user response
 	for inner_update := range *updates {
@@ -547,21 +558,25 @@ func Admin_DeleteBook_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi
 				if err != nil {
 					log.Printf("Error occurred during extract book id from start query for delete - %s", err.Error())
 					SendUnknownError(bot_api, inner_update.FromChat().ChatConfig().ChatID)
+					continue
 				}
 				book_title, err := db_action.GetBookTitleByID(book_id)
 				if err != nil {
 					log.Printf("Error occurred during get book title in delete operation - %s", err.Error())
 					SendUnknownError(bot_api, inner_update.FromChat().ChatConfig().ChatID)
+					continue
 				}
 				err = db_action.DeleteBookByID(book_id)
 				if err != nil {
 					log.Printf("Error occurred during delete book from database - %s", err.Error())
 					SendUnknownError(bot_api, inner_update.FromChat().ChatConfig().ChatID)
+					continue
 				}
 				msg := tgbotapi.NewMessage(inner_update.FromChat().ChatConfig().ChatID, fmt.Sprintf(BOOK_DELETED_MESSAGE, book_title))
 				if _, err = bot_api.Send(msg); err != nil {
 					log.Printf("Error occurred during send book successfuly deleted message")
 					SendError(bot_api, inner_update.FromChat().ChatConfig().ChatID, fmt.Sprintf(BOOK_DELETED_MESSAGE, book_title))
+					continue
 				}
 				break
 				// User canceled the operation
@@ -589,12 +604,14 @@ func Admin_ConfirmOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbot
 	if err != nil {
 		log.Printf("Error occurred during get in confirmation queue orders - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 	}
 	if len(orders) < 1 {
 		err = sendNoOrdersInConfirmationQueue(bot_api, int(update.FromChat().ChatConfig().ChatID))
 		if err != nil {
 			log.Print(err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+			return
 		}
 	}
 	for i := range orders {
@@ -603,12 +620,14 @@ func Admin_ConfirmOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbot
 		if err != nil {
 			log.Printf("Error occurred during get user telegram id by user id - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+			continue
 		}
 		// Create msg message
 		message, err := makeCartMessage(user_telegram_id)
 		if err != nil {
 			log.Printf("Error occurred during make cart message for confirm or reject - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+			continue
 		}
 		// Create msg
 		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
@@ -618,6 +637,7 @@ func Admin_ConfirmOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbot
 		if _, err := bot_api.Send(msg); err != nil {
 			log.Printf("Error occureed during send message to confirm or reject order - %s", err.Error())
 			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+			continue
 		}
 		// Wait for user choose
 		for inner_update := range *updates {
@@ -697,6 +717,7 @@ func Admin_BackToAdminPanel_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tg
 	if err != nil {
 		log.Printf("Error occurred during make main keyboard - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 	}
 	msg.ReplyMarkup = keyboard
 	if _, err := bot_api.Send(msg); err != nil {
@@ -711,6 +732,7 @@ func Admin_BackToUserPanel_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgb
 	if err != nil {
 		log.Printf("Error occurred during make main keyboard - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 	}
 	msg.ReplyMarkup = keyboard
 	if _, err := bot_api.Send(msg); err != nil {
@@ -724,6 +746,7 @@ func ShowUserOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.U
 	if err != nil {
 		log.Printf("Error occurred druing make show user orders message - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 	}
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
 	msg.ParseMode = "html"
@@ -739,6 +762,7 @@ func FAQ_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	if err != nil {
 		log.Printf("Error occurred during make main keyboard - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
 	}
 	msg.ReplyMarkup = keyboard
 	msg.ParseMode = "html"
