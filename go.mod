@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
+	github.com/yaa110/go-persian-calendar v1.1.3
 	gorm.io/gorm v1.24.0
 )
 
@@ -15,7 +16,6 @@ require (
 	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/golang/geo v0.0.0-20190812012225-f41920e961ce // indirect
-	github.com/yaa110/go-persian-calendar v1.1.3 // indirect
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect
 )

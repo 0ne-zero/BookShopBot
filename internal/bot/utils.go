@@ -202,6 +202,9 @@ func GetGoodreadsScoreByISBN(isbn string) (string, error) {
 	return string(output_bytes), nil
 }
 func IsAdmin(user_telegram_id int) bool {
+	if ADMIN_WANTS_TO_GO_USER_MODE {
+		return false
+	}
 	// Get admin id from settings
 	admin_id_str := setting.ReadFieldInSettingData("ADMIN_TELEGRAM_ID")
 	// Parse id to int64
@@ -369,7 +372,7 @@ func getUserAddressInformationFromUser(bot_api *tgbotapi.BotAPI, update *tgbotap
 func makeCartMessage(user_telegram_id int) (string, error) {
 	var message string
 	// Add message header
-	message += CART_MESSAGE_HEADER + "\n\n"
+	message += CART_MESSAGE_HEADER_MESSAGE + "\n\n"
 	message = "محتویات سبد خرید:\n"
 	// Get user cart books id
 	books_id, err := db_action.GetUserCartBooksID(user_telegram_id)
@@ -403,7 +406,7 @@ func makeCartMessage(user_telegram_id int) (string, error) {
 	}
 	message += "\n" + fmt.Sprintf("قیمت کتاب ها:  %s\n", fmt.Sprint(books_price))
 	// Create message footer
-	message += "\n" + CART_MESSAGE_FOOTER
+	message += "\n" + CART_MESSAGE_FOOTER_MESSAGE
 	// Add bot username at the end of message
 	message += fmt.Sprintf("\n\n@%s", BOT_USERNAME)
 	return message, nil
@@ -446,14 +449,9 @@ func makeShowUserOrdersMessage(user_telegram_id int) (string, error) {
 	}
 	// Add orders info to message
 	for i := range orders_info {
-		cur_order := orders_info[i]
-		// Add order time and status
-		message += fmt.Sprintf("%d- %s (%s) *%s*", i+1, "جزيیات سفارش ثبت شده در تاریخ :", ConvertTimeToPersian(cur_order.OrderTime), cur_order.OrderStatus)
-		// Add order books to message
-		for i := range cur_order.Books {
-			message += fmt.Sprintf("\n\t%s(%s)", cur_order.Books[i].Title, cur_order.Books[i].Author)
-		}
-		message += "\n\n"
+		order_info_message := makeOrderInfoMessage(&orders_info[i])
+		message += "\n" + order_info_message
+
 	}
 	// Append footer of message
 	message += SHOW_ORDERS_FOOTER_MESSAGE
@@ -485,7 +483,7 @@ func calculateShipmentCost(cart_info *db_action.CartInformationForCalculateShipm
 }
 func ConvertTimeToPersian(t *time.Time) string {
 	p_time := persian_time.New(*t)
-	format := fmt.Sprintf("%s-%s-%s", p_time.Year(), p_time.Month(), p_time.Day())
+	format := fmt.Sprintf("%d-%d-%d", p_time.Year(), p_time.Month(), p_time.Day())
 	return format
 }
 func makeMainKeyboard(user_telegram_id int) (*tgbotapi.ReplyKeyboardMarkup, error) {
@@ -499,7 +497,6 @@ func makeMainKeyboard(user_telegram_id int) (*tgbotapi.ReplyKeyboardMarkup, erro
 				tgbotapi.NewKeyboardButton(ADMIN_ADD_BOOK_KEYBOARD_ITEM_TITLE),
 			),
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(FAQ_KEYBOARD_ITEM_TITLE),
 				tgbotapi.NewKeyboardButton(ADMIN_BACK_TO_USER_PANEL_ITEM_TITLE)),
 		)
 		return &keyboard, nil
@@ -510,52 +507,76 @@ func makeMainKeyboard(user_telegram_id int) (*tgbotapi.ReplyKeyboardMarkup, erro
 			return nil, err
 			// User have order
 		} else if have_order {
-			keyboard := tgbotapi.NewReplyKeyboard(
-				tgbotapi.NewKeyboardButtonRow(
-					tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
-					tgbotapi.NewKeyboardButton(ADDRESS_KEYBOARD_ITEM_TITLE),
-					tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
-				),
-				tgbotapi.NewKeyboardButtonRow(
-					tgbotapi.NewKeyboardButton(SHOW_ORDERS_KEYBOARD_ITEM_TITLE),
-				),
-				tgbotapi.NewKeyboardButtonRow(
-					tgbotapi.NewKeyboardButton(FAQ_KEYBOARD_ITEM_TITLE),
-					tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE)),
-			)
-			return &keyboard, nil
+			// Check user is really isn't admin or just admin wants to be a normal user
+			if !ADMIN_WANTS_TO_GO_USER_MODE {
+				keyboard := tgbotapi.NewReplyKeyboard(
+					tgbotapi.NewKeyboardButtonRow(
+						tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
+						tgbotapi.NewKeyboardButton(ADDRESS_KEYBOARD_ITEM_TITLE),
+						tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
+					),
+					tgbotapi.NewKeyboardButtonRow(
+						tgbotapi.NewKeyboardButton(SHOW_ORDERS_KEYBOARD_ITEM_TITLE),
+					),
+					tgbotapi.NewKeyboardButtonRow(
+						tgbotapi.NewKeyboardButton(FAQ_KEYBOARD_ITEM_TITLE),
+						tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE)),
+				)
+				return &keyboard, nil
+			} else {
+				keyboard := tgbotapi.NewReplyKeyboard(
+					tgbotapi.NewKeyboardButtonRow(
+						tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
+						tgbotapi.NewKeyboardButton(ADDRESS_KEYBOARD_ITEM_TITLE),
+						tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
+					),
+					tgbotapi.NewKeyboardButtonRow(
+						tgbotapi.NewKeyboardButton(SHOW_ORDERS_KEYBOARD_ITEM_TITLE),
+					),
+					tgbotapi.NewKeyboardButtonRow(
+						tgbotapi.NewKeyboardButton(FAQ_KEYBOARD_ITEM_TITLE),
+						tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE)),
+					tgbotapi.NewKeyboardButtonRow(
+						tgbotapi.NewKeyboardButton(ADMIN_BACK_TO_ADMIN_PANEL_ITEM_TITLE),
+					),
+				)
+				return &keyboard, nil
+			}
 			// User doesn't have order
 		} else {
-			keyboard := tgbotapi.NewReplyKeyboard(
-				tgbotapi.NewKeyboardButtonRow(
-					tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
-					tgbotapi.NewKeyboardButton(ADDRESS_KEYBOARD_ITEM_TITLE),
-					tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
-				),
-				tgbotapi.NewKeyboardButtonRow(
-					tgbotapi.NewKeyboardButton(FAQ_KEYBOARD_ITEM_TITLE),
-					tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE)),
-			)
-			return &keyboard, nil
+			// Check user is really isn't admin or just admin wants to be a normal user
+			if !ADMIN_WANTS_TO_GO_USER_MODE {
+				keyboard := tgbotapi.NewReplyKeyboard(
+					tgbotapi.NewKeyboardButtonRow(
+						tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
+						tgbotapi.NewKeyboardButton(ADDRESS_KEYBOARD_ITEM_TITLE),
+						tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
+					),
+					tgbotapi.NewKeyboardButtonRow(
+						tgbotapi.NewKeyboardButton(FAQ_KEYBOARD_ITEM_TITLE),
+						tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE)),
+				)
+				return &keyboard, nil
+			} else {
+				keyboard := tgbotapi.NewReplyKeyboard(
+					tgbotapi.NewKeyboardButtonRow(
+						tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
+						tgbotapi.NewKeyboardButton(ADDRESS_KEYBOARD_ITEM_TITLE),
+						tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
+					),
+					tgbotapi.NewKeyboardButtonRow(
+						tgbotapi.NewKeyboardButton(FAQ_KEYBOARD_ITEM_TITLE),
+						tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE)),
+					tgbotapi.NewKeyboardButtonRow(
+						tgbotapi.NewKeyboardButton(ADMIN_BACK_TO_ADMIN_PANEL_ITEM_TITLE),
+					),
+				)
+				return &keyboard, nil
+			}
 		}
 	}
 }
-func makeAdminUserPanelKeyboard() *tgbotapi.ReplyKeyboardMarkup {
-	var keyboard = tgbotapi.NewReplyKeyboard(
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(CART_KEYBOARD_ITEM_TITLE),
-			tgbotapi.NewKeyboardButton(ADDRESS_KEYBOARD_ITEM_TITLE),
-			tgbotapi.NewKeyboardButton(SEARCH_BOOK_KEYBOARD_ITEM_TITLE),
-		),
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(CONTACT_ADMIN_KEYBOARD_ITEM_TITLE),
-		),
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(ADMIN_BACK_TO_ADMIN_PANEL_ITEM_TITLE),
-		),
-	)
-	return &keyboard
-}
+
 func makeBookAgeCategoryKeyboard() (*tgbotapi.InlineKeyboardMarkup, error) {
 	categories, err := db_action.GetBookAgeCategories()
 	if err != nil {
@@ -603,4 +624,68 @@ func extractMessageIDFromTelegramRawResponse(raw_response string) (int, error) {
 	end_id_index := strings.Index(after, ",")
 	id_str := after[:end_id_index]
 	return strconv.Atoi(id_str)
+}
+func sendOrderConfirmedToUser(bot_api *tgbotapi.BotAPI, user_telegram_id, order_id int) error {
+	var message = SEND_ORDER_CONFIRMED_TO_USER_HEADER
+	// Get order info as message
+	// Get order info
+	order_info, err := db_action.GetUserOrderInfoByOrderID(order_id)
+	if err != nil {
+		log.Printf("Error occurred during get order info by order id - %s", err.Error())
+	}
+	order_info_message := makeOrderInfoMessage(order_info)
+	// Append order info to main message
+	message += "\n" + order_info_message
+	// Add footer
+	message += "\n" + SEND_ORDER_CONFIRMED_TO_USER_FOOTER
+
+	// Create msg
+	msg := tgbotapi.NewMessage(int64(user_telegram_id), message)
+	msg.ParseMode = "html"
+	// Send msg
+	if _, err := bot_api.Send(msg); err != nil {
+		log.Printf("Error occurred during send order confirmed message - %s", err.Error())
+		return err
+	}
+	return nil
+}
+
+func makeOrderInfoMessage(orders_info *db_action.UserOrderForShow) string {
+	var result string
+
+	// Add order time and status
+	result += fmt.Sprintf("\n- %s (%s)\n- وضعیت: %s", "جزيیات سفارش ثبت شده در تاریخ :", ConvertTimeToPersian(orders_info.OrderTime), orders_info.OrderStatus)
+	// Add order books
+	result += "\n- محتویات: "
+	for i := range orders_info.Books {
+		result += fmt.Sprintf("\n\t%d- <a href=\"%s\">%s (%s)\n</a>", i+1, fmt.Sprintf(BOT_START_QUERY, BOT_USERNAME, orders_info.Books[i].ID), orders_info.Books[i].Title, orders_info.Books[i].Author)
+	}
+	result += "\n\n"
+
+	return result
+}
+func sendOrderRejectedToUser(bot_api *tgbotapi.BotAPI, user_telegram_id, order_id int) error {
+	var message = SEND_ORDER_REJECTED_TO_USER_HEADER
+	// Get order info
+	order_info, err := db_action.GetUserOrderInfoByOrderID(order_id)
+	if err != nil {
+		log.Printf("Error occurred during get order info by order id - %s", err.Error())
+	}
+	// Get order info message
+	order_info_message := makeOrderInfoMessage(order_info)
+
+	// Append order info to main message
+	message += "\n" + order_info_message
+	// Add footer
+	message += "\n" + SEND_ORDER_REJECTED_TO_USER_FOOTER
+
+	// Create msg
+	msg := tgbotapi.NewMessage(int64(user_telegram_id), message)
+	msg.ParseMode = "html"
+	// Send msg
+	if _, err := bot_api.Send(msg); err != nil {
+		log.Printf("Error occurred during send order rejected message - %s", err.Error())
+		return err
+	}
+	return nil
 }

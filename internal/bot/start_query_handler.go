@@ -92,15 +92,29 @@ func sendBookInformation(update *tgbotapi.Update, bot_api *tgbotapi.BotAPI) (int
 		}
 		files = append(files, item)
 	}
-	// Create message
-	msg := tgbotapi.NewMediaGroup(update.FromChat().ChatConfig().ChatID, files)
 
-	// Send book information
-	if res, err := bot_api.Request(msg); err != nil {
-		log.Printf("Error occurred during send book information - %s", err.Error())
-		return 0, err
+	// Check book has any picture
+	if files != nil {
+		// Create message
+		msg := tgbotapi.NewMediaGroup(update.FromChat().ChatConfig().ChatID, files)
+
+		// Send book information
+		if res, err := bot_api.Request(msg); err != nil {
+			log.Printf("Error occurred during send book information - %s", err.Error())
+			return 0, err
+		} else {
+			sent_msg_id, err := extractMessageIDFromTelegramRawResponse(string(res.Result))
+			return sent_msg_id, err
+		}
 	} else {
-		sent_msg_id, err := extractMessageIDFromTelegramRawResponse(string(res.Result))
-		return sent_msg_id, err
+		// Create message
+		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, book_formatted_info)
+		if res, err := bot_api.Send(msg); err != nil {
+			log.Printf("Error occurred during send book message (without picture) - %s", err.Error())
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+			return 0, err
+		} else {
+			return res.MessageID, nil
+		}
 	}
 }

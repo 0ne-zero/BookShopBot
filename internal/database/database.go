@@ -140,15 +140,19 @@ func CreateEssensialData(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	err = db.FirstOrCreate(&model.OrderStatus{Base: model.Base{ID: 2}, Status: "در حال بسته بندی"}).Error
+	err = db.FirstOrCreate(&model.OrderStatus{Base: model.Base{ID: 2}, Status: "رد شده"}).Error
 	if err != nil {
 		return err
 	}
-	err = db.FirstOrCreate(&model.OrderStatus{Base: model.Base{ID: 3}, Status: "در حال ارسال"}).Error
+	err = db.FirstOrCreate(&model.OrderStatus{Base: model.Base{ID: 3}, Status: "در حال بسته بندی"}).Error
 	if err != nil {
 		return err
 	}
-	err = db.FirstOrCreate(&model.OrderStatus{Base: model.Base{ID: 4}, Status: "تحویل داده شده"}).Error
+	err = db.FirstOrCreate(&model.OrderStatus{Base: model.Base{ID: 4}, Status: "در حال ارسال"}).Error
+	if err != nil {
+		return err
+	}
+	err = db.FirstOrCreate(&model.OrderStatus{Base: model.Base{ID: 5}, Status: "تحویل داده شده"}).Error
 	if err != nil {
 		return err
 	}
