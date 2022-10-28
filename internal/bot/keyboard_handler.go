@@ -575,12 +575,27 @@ func BackToMainMenu(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	// Call manualy start command handler
 	Start_CommandHandler(bot_api, update)
 }
+func sendNoOrdersInConfirmationQueue(bot_api *tgbotapi.BotAPI, chat_id int) error {
+	msg := tgbotapi.NewMessage(int64(chat_id), NO_ORDERS_IN_CONFIRMATION_QUEUE)
+	if _, err := bot_api.Send(msg); err != nil {
+		log.Printf("Error occurred during send no orders in confirmation queue - %s", err.Error())
+		return err
+	}
+	return nil
+}
 func Admin_ConfirmOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
 	// Get in confirmation queue orders
 	orders, err := db_action.GetInConfirmationQueueOrders()
 	if err != nil {
 		log.Printf("Error occurred during get in confirmation queue orders - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+	}
+	if len(orders) < 1 {
+		err = sendNoOrdersInConfirmationQueue(bot_api, int(update.FromChat().ChatConfig().ChatID))
+		if err != nil {
+			log.Print(err.Error())
+			SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		}
 	}
 	for i := range orders {
 		// Get user telegram id
@@ -597,6 +612,7 @@ func Admin_ConfirmOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbot
 		}
 		// Create msg
 		msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
+		msg.ParseMode = "html"
 		msg.ReplyMarkup = CONFIRM_OR_REJECT_ORDER_INLINE_KEYBOARD
 		// Send msg to user
 		if _, err := bot_api.Send(msg); err != nil {
@@ -613,19 +629,51 @@ func Admin_ConfirmOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbot
 						log.Printf("Error occurred during send confirmation or rejection of orders canceled - %s", err.Error())
 						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 					}
+					return
 					// User confirmed order
-				} else if inner_update.CallbackQuery.Data == CONFIRM_ORDER {
+				} else if inner_update.CallbackQuery.Data == CONFIRM_ORDER_KEYBOARD_ITEM {
+					// Change order status
+					err = db_action.ChangeOrderStatus(orders[i].ID, db_action.IN_PACKING_QUEUE_ORDER_STATUS_ID)
+					if err != nil {
+						log.Printf("Error occurred during change order status to in packing queue - %s", err.Error())
+						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+						break
+					}
+					// Send status of order to user
+					err = sendOrderConfirmedToUser(bot_api, user_telegram_id, orders[i].ID)
+					if err != nil {
+						log.Printf("Error occurred during send order confirmed status to user - %s", err.Error())
+						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+						break
+					}
+					// Send message to admin
 					msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, ORDER_CONFIRMED_MESSAGE)
 					if _, err = bot_api.Send(msg); err != nil {
 						log.Printf("Error occurred during send order confirmed message - %s", err.Error())
 						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+						break
 					}
 					// User rejected order
-				} else if inner_update.CallbackQuery.Data == REJECT_ORDER {
+				} else if inner_update.CallbackQuery.Data == REJECT_ORDER_KEYBOARD_ITEM {
+					err = db_action.ChangeOrderStatus(orders[i].ID, db_action.REJECTED_ORDER_STATUS_ID)
+					if err != nil {
+						log.Printf("Error occurred during change order status to rejected - %s", err.Error())
+						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+						break
+					}
+					// Send status of order to user
+					err = sendOrderRejectedToUser(bot_api, user_telegram_id, orders[i].ID)
+					if err != nil {
+						log.Printf("Error occurred during send order rejected status to user - %s", err.Error())
+						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+						break
+					}
+					// Send message to admin
 					msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, ORDER_REJECTED_MESSAGE)
 					if _, err = bot_api.Send(msg); err != nil {
 						log.Printf("Error occurred during send order rejected message - %s", err.Error())
 						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+						break
 					}
 				}
 			}
@@ -633,10 +681,17 @@ func Admin_ConfirmOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbot
 		}
 
 	}
+	// Orders in confirmation queue finished
+	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, THERE_IS_NO_IN_CONFIRMATION_ORDER_LEFT)
+	if _, err = bot_api.Send(msg); err != nil {
+		log.Printf("Error occurred during send in confirmation order queue finished message - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+	}
 }
 func Admin_Statistics_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 }
 func Admin_BackToAdminPanel_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	ADMIN_WANTS_TO_GO_USER_MODE = false
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, ADMIN_START_TEXT)
 	keyboard, err := makeMainKeyboard(int(update.SentFrom().ID))
 	if err != nil {
@@ -650,8 +705,14 @@ func Admin_BackToAdminPanel_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tg
 	}
 }
 func Admin_BackToUserPanel_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
-	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, ADMIN_START_TEXT)
-	msg.ReplyMarkup = makeAdminUserPanelKeyboard()
+	ADMIN_WANTS_TO_GO_USER_MODE = true
+	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, START_TEXT)
+	keyboard, err := makeMainKeyboard(int(update.SentFrom().ID))
+	if err != nil {
+		log.Printf("Error occurred during make main keyboard - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+	}
+	msg.ReplyMarkup = keyboard
 	if _, err := bot_api.Send(msg); err != nil {
 		log.Printf("Error occurred during send start message to normal user - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -665,6 +726,7 @@ func ShowUserOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.U
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 	}
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
+	msg.ParseMode = "html"
 	if _, err = bot_api.Send(msg); err != nil {
 		log.Printf("Error occurred during send show user orders message - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
@@ -673,7 +735,13 @@ func ShowUserOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.U
 
 func FAQ_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, FAQ_MESSAGE)
-	msg.ReplyMarkup = makeAdminUserPanelKeyboard()
+	keyboard, err := makeMainKeyboard(int(update.SentFrom().ID))
+	if err != nil {
+		log.Printf("Error occurred during make main keyboard - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+	}
+	msg.ReplyMarkup = keyboard
+	msg.ParseMode = "html"
 	if _, err := bot_api.Send(msg); err != nil {
 		log.Printf("Error occurred during send start message to normal user - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)

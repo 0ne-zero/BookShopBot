@@ -100,18 +100,13 @@ func DeleteBookFromCart(book_id, cart_id int) error {
 	}
 	return db.Delete(&model.CartItem{}, cart_item_id).Error
 }
-func IsUserExistsByTelegramUserID(user_telegram_id int) (bool, error) {
+func IsUserExistsByUserTelegramID(user_telegram_id int) (bool, error) {
 	db := database.InitializeOrGetDB()
 	if db == nil {
 		log.Fatal("Cannot connect to the database")
 	}
-	// Set user id of address
-	user_id, err := GetUserIDByTelegramUserID(user_telegram_id)
-	if err != nil {
-		return false, err
-	}
 	var exists bool
-	err = db.Model(&model.User{}).Select("count(*) > 0").Where("id = ?", user_id).Scan(&exists).Error
+	err := db.Model(&model.User{}).Select("count(*) > 0").Where("user_telegram_id = ?", user_telegram_id).Scan(&exists).Error
 	return exists, err
 }
 func IsBookExistsInCart(book_id, cart_id int) (bool, error) {
@@ -129,39 +124,6 @@ func AddBook(b *model.Book) error {
 		log.Fatal("Cannot connect to the database")
 	}
 	return db.Create(b).Error
-}
-func GetUserOrdersByTelegramID(user_telegram_id int) ([]ShowOrder, error) {
-	db := database.InitializeOrGetDB()
-	if db == nil {
-		log.Fatal("Cannot connect to the database")
-	}
-	// Get user id
-	user_id, err := GetUserIDByTelegramUserID(user_telegram_id)
-	if err != nil {
-		return nil, err
-	}
-	// Get user orders id
-	orders_id, err := getUserOrdersIDByUserID(user_id)
-	if err != nil {
-		return nil, err
-	}
-	if len(orders_id) < 1 {
-		return nil, fmt.Errorf("user doesn't have any order")
-	}
-	var show_orders = make([]ShowOrder, len(orders_id))
-	for i, order_id := range orders_id {
-		show_order, err := getOrderBasicInfoByOrderID(order_id)
-		if err != nil {
-			return nil, err
-		}
-		books_info, err := getOrderBooksInfo(order_id)
-		if err != nil {
-			return nil, err
-		}
-		show_order.Books = books_info
-		show_orders[i] = *show_order
-	}
-	return show_orders, nil
 }
 func ConvertOrderStatusIDToOrderStatus(order_status_id int) (string, error) {
 	db := database.InitializeOrGetDB()
@@ -207,15 +169,6 @@ func getOrderCreateTime(order_id int) (*time.Time, error) {
 	var created_at *time.Time
 	err := db.Model(&model.Order{}).Where("id = ?", order_id).Select("created_at").Scan(&created_at).Error
 	return created_at, err
-}
-func getUserOrdersIDByUserID(user_id int) ([]int, error) {
-	db := database.InitializeOrGetDB()
-	if db == nil {
-		log.Fatal("Cannot connect to the database")
-	}
-	var ids []int
-	err := db.Model(&model.Order{}).Where("user_id = ?", user_id).Select("id").Scan(&ids).Error
-	return ids, err
 }
 
 // Returns nil,nil, If order doesn't have any book
@@ -322,7 +275,7 @@ func GetUserIDByTelegramUserID(user_telegram_id int) (int, error) {
 		log.Fatal("Cannot connect to the database")
 	}
 	var user_id int
-	err := db.Model(&model.User{}).Select("id").Where("telegram_user_id = ?", user_telegram_id).Scan(&user_id).Error
+	err := db.Model(&model.User{}).Select("id").Where("user_telegram_id = ?", user_telegram_id).Scan(&user_id).Error
 	return user_id, err
 }
 func AddBookToCart(cart_id, book_id int) error {
@@ -391,7 +344,7 @@ func AddOrder(user_telegram_id int) error {
 	order := &model.Order{
 		UserID:        uint(user_id),
 		CartID:        uint(cart_id),
-		OrderStatusID: IN_CONFIRMATION_QUEUE_ORDER_STATUS_ID,
+		OrderStatusID: uint(IN_CONFIRMATION_QUEUE_ORDER_STATUS_ID),
 	}
 	err = db.Create(order).Error
 	if err != nil {
@@ -558,6 +511,15 @@ func GetBookSizeByID(id int) (*model.BookSize, error) {
 	err := db.Model(&book_size).Where("id = ?", id).Find(&book_size).Error
 	return &book_size, err
 }
+func getUserOrdersIDByUserID(user_id int) ([]int, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var ids []int
+	err := db.Model(&model.Order{}).Where("user_id = ?", user_id).Select("id").Scan(&ids).Error
+	return ids, err
+}
 func GetUserOrdersForShowByUserTelegramID(user_telegram_id int) ([]UserOrderForShow, error) {
 	db := database.InitializeOrGetDB()
 	if db == nil {
@@ -568,9 +530,9 @@ func GetUserOrdersForShowByUserTelegramID(user_telegram_id int) ([]UserOrderForS
 	if err != nil {
 		return nil, err
 	}
+
 	// Get orders id
-	var order_ids []int
-	err = db.Model(&model.Order{}).Where("user_id = ?", user_id).Select("id").Scan(&order_ids).Error
+	order_ids, err := getUserOrdersIDByUserID(user_id)
 	if err != nil {
 		return nil, err
 	}
@@ -608,6 +570,29 @@ func GetUserOrdersForShowByUserTelegramID(user_telegram_id int) ([]UserOrderForS
 	}
 	return orders_info, nil
 }
+func GetUserOrderInfoByOrderID(order_id int) (*UserOrderForShow, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	order_status, err := GetOrder_OrderStatusByOrderID(order_id)
+	if err != nil {
+		return nil, err
+	}
+	order_created_at, err := getOrderCreateTime(order_id)
+	if err != nil {
+		return nil, err
+	}
+	order_books, err := getOrderBooksInfo(order_id)
+	if err != nil {
+		return nil, err
+	}
+	return &UserOrderForShow{
+		OrderTime:   order_created_at,
+		OrderStatus: order_status,
+		Books:       order_books,
+	}, nil
+}
 func GetOrder_OrderStatusByOrderID(order_id int) (string, error) {
 	db := database.InitializeOrGetDB()
 	if db == nil {
@@ -628,7 +613,7 @@ func getOrderStatusByOrderStatusID(order_status_id int) (string, error) {
 		log.Fatal("Cannot connect to the database")
 	}
 	var order_status string
-	err := db.Model(&model.OrderStatus{}).Where("id = ?", order_status_id).Select("status").Scan(order_status).Error
+	err := db.Model(&model.OrderStatus{}).Where("id = ?", order_status_id).Select("status").Scan(&order_status).Error
 	return order_status, err
 }
 func GetBookAgeCategoryByID(id int) (*model.BookAgeCategory, error) {
@@ -657,4 +642,12 @@ func GetUserTelegramIDByUserID(user_id int) (int, error) {
 	var user_telegram_id int
 	err := db.Model(&model.User{}).Where("id = ?", user_id).Select("user_telegram_id").Scan(&user_telegram_id).Error
 	return user_telegram_id, err
+}
+func ChangeOrderStatus(order_id int, order_status_id OrderStatus) error {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	err := db.Model(&model.Order{}).Where("id = ?", order_id).Update("order_status_id", order_status_id).Error
+	return err
 }

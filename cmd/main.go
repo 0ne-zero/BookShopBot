@@ -52,7 +52,7 @@ func main() {
 	for update := range updates {
 		// Add user to database (If not exists)
 		if from := update.SentFrom(); from != nil {
-			is_exists, err := db_action.IsUserExistsByTelegramUserID(int(from.ID))
+			is_exists, err := db_action.IsUserExistsByUserTelegramID(int(from.ID))
 			if err != nil {
 				log.Printf("Error occurred during check user already exists in database - %s", err.Error())
 			} else if !is_exists {
@@ -85,7 +85,7 @@ func main() {
 			}
 		}
 		// Is admin
-		if bot.IsAdmin(int(update.SentFrom().ID)) {
+		if bot.ADMIN_WANTS_TO_GO_USER_MODE || bot.IsAdmin(int(update.SentFrom().ID)) {
 			// User is admin
 			if update.InlineQuery != nil && update.InlineQuery.Query != "" {
 				// Search for delete
@@ -98,9 +98,8 @@ func main() {
 			if update.Message != nil && update.Message.Text != "" {
 				admin_Message_Text_Handler(bot_api, &update, &updates)
 			}
-
-			// User is normal user
 		} else {
+			// User is normal user
 			// Is a inline query
 			if update.InlineQuery != nil && update.InlineQuery.Query != "" {
 				bot.SearchBookByTitle_InlineQueryHandler(bot_api, &update)
@@ -134,9 +133,6 @@ func user_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update
 		// Show cart handler
 	case bot.CART_KEYBOARD_ITEM_TITLE:
 		bot.Cart_KeyboardHandler(bot_api, update)
-		// Buy cart handler
-	case bot.BUY_CART_KEYBOARD_ITEM_TITLE:
-		bot.Cart_KeyboardHandler(bot_api, update)
 		// Contact to admin handler
 	case bot.CONTACT_ADMIN_KEYBOARD_ITEM_TITLE:
 		bot.ContactAdmin_KeyboardHandler(bot_api, update)
@@ -146,6 +142,12 @@ func user_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update
 		// Back to main menu (admin panel) handler
 	case bot.MAIN_MENU_ITEM_TITLE:
 		bot.BackToMainMenu(bot_api, update)
+		// Show user orders
+	case bot.SHOW_ORDERS_KEYBOARD_ITEM_TITLE:
+		bot.ShowUserOrders_KeyboardHandler(bot_api, update)
+		// FAQ message
+	case bot.FAQ_KEYBOARD_ITEM_TITLE:
+		bot.FAQ_KeyboardHandler(bot_api, update)
 	}
 }
 func admin_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
@@ -195,5 +197,11 @@ func admin_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Updat
 		// Show user orders
 	case bot.SHOW_ORDERS_KEYBOARD_ITEM_TITLE:
 		bot.ShowUserOrders_KeyboardHandler(bot_api, update)
+		// FAQ message
+	case bot.FAQ_KEYBOARD_ITEM_TITLE:
+		bot.FAQ_KeyboardHandler(bot_api, update)
+		// Show cart handler
+	case bot.CART_KEYBOARD_ITEM_TITLE:
+		bot.Cart_KeyboardHandler(bot_api, update)
 	}
 }

@@ -16,9 +16,9 @@ type User struct {
 	UserTelegramUsername string `gorm:"NOT NULL;"`
 	UserTelegramID       int    `gorm:"NOT NULL;"`
 	// User has one Address
-	Address Address
+	Address *Address
 	// User has one Cart
-	Cart Cart
+	Cart *Cart
 	// User has many Orders
 	Orders []*Order
 }
