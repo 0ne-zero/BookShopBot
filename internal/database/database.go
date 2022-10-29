@@ -102,6 +102,7 @@ func MigrateModels(db *gorm.DB) error {
 		&model.OrderStatus{},
 		&model.Cart{},
 		&model.CartItem{},
+		&model.OrderRejectionReason{},
 	)
 }
 func CreateEssensialData(db *gorm.DB) error {

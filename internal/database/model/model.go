@@ -96,6 +96,8 @@ type Order struct {
 	UserID uint `gorm:"NOT NULL;"`
 	// Order has one OrderStatus
 	OrderStatusID uint `gorm:"NOT NULL;"`
+	// Order has one OrderRejectionReason
+	RejectionReason *OrderRejectionReason
 }
 type OrderStatus struct {
 	Base
@@ -122,4 +124,10 @@ type CartItem struct {
 	BookQuantity uint  `gorm:"NOT NULL"`
 	// CartItem has one Cart
 	CartID uint
+}
+type OrderRejectionReason struct {
+	Base
+	Reason string
+	// OrderRejectionReason has one order
+	OrderID int
 }

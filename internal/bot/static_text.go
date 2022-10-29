@@ -39,6 +39,7 @@ const (
 	REQUEST_ADDRESS_PHONE_NUMBER    = "شماره همراهتان را بنویسید :"
 	REQUEST_BOOK_PICTURE            = "عکس های کتاب را در یک پیام ارسال کنید :"
 	REQUEST_TRACKING_CODE           = "لطفا کد رهگیری سفارش را وارد کنید :"
+	REQUEST_ORDER_REJECT_REASON     = "دلیل رد تایید سفارش را وارد کنید: "
 	// Messages
 	YOU_HAVE_NOT_ADDRESS_INLINE_KEYBOARD_MESSAGE      = "شما ادرسی را تنظیم نکرده اید, برای تنظیم ادرس بر روی دکمه ی زیر کلیک کنید !"
 	CONTACT_TO_ADMIN_MESSAGE                          = "با کلیک بر روی دکمه ی زیر میتوانید با ادمین ارتباط داشته باشید !"

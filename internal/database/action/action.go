@@ -328,6 +328,18 @@ func GetBookByID(book_id int) (*model.Book, error) {
 	err := db.Model(&model.Book{}).Preload("CoverType").Preload("BookSize").Preload("BookAgeCategory").Where("id = ?", book_id).Find(&b).Error
 	return &b, err
 }
+func AddRejectionReasonToOrder(order_id int, reason string) error {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	reason_model := &model.OrderRejectionReason{
+		Reason:  reason,
+		OrderID: order_id,
+	}
+	err := db.Create(&reason_model).Error
+	return err
+}
 func AddOrder(user_telegram_id int) error {
 	db := database.InitializeOrGetDB()
 	if db == nil {
