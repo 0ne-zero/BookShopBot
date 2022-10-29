@@ -676,6 +676,18 @@ func Admin_ConfirmOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbot
 					}
 					// User rejected order
 				} else if inner_update.CallbackQuery.Data == REJECT_ORDER_KEYBOARD_ITEM {
+					admin_reason, err := getInputFromUser(bot_api, update, updates, REQUEST_ORDER_REJECT_REASON, updateValidateFunc)
+					if err != nil {
+						log.Printf("Error occurred during get reason of order rejection - %s", err.Error())
+						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+						break
+					}
+					err = db_action.AddRejectionReasonToOrder(orders[i].ID, admin_reason)
+					if err != nil {
+						log.Printf("Error occurred during add rejection reason - %s", err.Error())
+						SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+						break
+					}
 					err = db_action.ChangeOrderStatus(orders[i].ID, db_action.REJECTED_ORDER_STATUS_ID)
 					if err != nil {
 						log.Printf("Error occurred during change order status to rejected - %s", err.Error())
