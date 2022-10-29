@@ -3,12 +3,14 @@ package db_action
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/0ne-zero/BookShopBot/internal/database"
 	"github.com/0ne-zero/BookShopBot/internal/database/model"
 	"github.com/0ne-zero/BookShopBot/internal/utils"
+	setting "github.com/0ne-zero/BookShopBot/internal/utils/settings"
 )
 
 type Models interface {
@@ -342,7 +344,13 @@ func AddOrder(user_telegram_id int) error {
 		return err
 	}
 	// Generate Tracking code
-	track_code, err := utils.GenerateRandomHex(16)
+	// Get tracking code tracking code length
+	tracking_code_length_str := setting.ReadFieldInSettingData("TRACKING_CODE_LENGTH")
+	tracking_code_length, err := strconv.Atoi(tracking_code_length_str)
+	if err != nil {
+		log.Fatalf("Connot convert setting tracking code length to int - %s", err.Error())
+	}
+	track_code, err := utils.GenerateRandomHex(tracking_code_length)
 	if err != nil {
 		return err
 	}
@@ -568,14 +576,95 @@ func GetUserOrdersForShowByUserTelegramID(user_telegram_id int) ([]UserOrderForS
 		if err != nil {
 			return nil, err
 		}
+		// Get order tracking code
+		tracking_code, err := getOrderTrackingCode(order_id)
+		if err != nil {
+			return nil, err
+		}
+		post_tracking_code, err := getOrderPostTrackingCode(order_id)
+		if err != nil {
+			return nil, err
+		}
 		item := UserOrderForShow{
-			OrderTime:   order_created_at,
-			OrderStatus: order_status,
-			Books:       books,
+			OrderTrackingCode:     tracking_code,
+			OrderPostTrackingCode: post_tracking_code,
+			OrderTime:             order_created_at,
+			OrderStatus:           order_status,
+			Books:                 books,
 		}
 		orders_info[i] = item
 	}
 	return orders_info, nil
+}
+func getOrderTrackingCode(order_id int) (string, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var track_code string
+	err := db.Model(&model.Order{}).Where("id = ?", order_id).Select("tracking_code").Scan(&track_code).Error
+	return track_code, err
+}
+func getOrderPostTrackingCode(order_id int) (string, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var track_code string
+	err := db.Model(&model.Order{}).Where("id = ?", order_id).Select("tpost_tracking_code").Scan(&track_code).Error
+	return track_code, err
+}
+func GetOrderByTrackingCode(tracking_code string) (*model.Order, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var order model.Order
+	err := db.Model(&order).Where("tracking_code = ?", tracking_code).Find(&order).Error
+	return &order, err
+}
+func getOrderIDByTrackingCode(tracking_code string) (int, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var order_id int
+	err := db.Model(&model.Order{}).Where("tracking_code = ?", tracking_code).Select("id").Scan(&order_id).Error
+	return order_id, err
+}
+func GetOrderInfoByTrackingCode(tracking_code string) (*UserOrderForShow, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	// Get order id
+	order_id, err := getOrderIDByTrackingCode(tracking_code)
+	if err != nil {
+		return nil, err
+	}
+	order_status, err := GetOrder_OrderStatusByOrderID(order_id)
+	if err != nil {
+		return nil, err
+	}
+	order_created_at, err := getOrderCreateTime(order_id)
+	if err != nil {
+		return nil, err
+	}
+	order_books, err := getOrderBooksInfo(order_id)
+	if err != nil {
+		return nil, err
+	}
+	post_tracking_code, err := getOrderPostTrackingCode(order_id)
+	if err != nil {
+		return nil, err
+	}
+	return &UserOrderForShow{
+		OrderTrackingCode:     tracking_code,
+		OrderPostTrackingCode: post_tracking_code,
+		OrderTime:             order_created_at,
+		OrderStatus:           order_status,
+		Books:                 order_books,
+	}, nil
 }
 func GetUserOrderInfoByOrderID(order_id int) (*UserOrderForShow, error) {
 	db := database.InitializeOrGetDB()
@@ -594,10 +683,20 @@ func GetUserOrderInfoByOrderID(order_id int) (*UserOrderForShow, error) {
 	if err != nil {
 		return nil, err
 	}
+	tracking_code, err := getOrderTrackingCode(order_id)
+	if err != nil {
+		return nil, err
+	}
+	post_tracking_code, err := getOrderPostTrackingCode(order_id)
+	if err != nil {
+		return nil, err
+	}
 	return &UserOrderForShow{
-		OrderTime:   order_created_at,
-		OrderStatus: order_status,
-		Books:       order_books,
+		OrderTrackingCode:     tracking_code,
+		OrderPostTrackingCode: post_tracking_code,
+		OrderTime:             order_created_at,
+		OrderStatus:           order_status,
+		Books:                 order_books,
 	}, nil
 }
 func GetOrder_OrderStatusByOrderID(order_id int) (string, error) {

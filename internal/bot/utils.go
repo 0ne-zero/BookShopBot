@@ -2,8 +2,6 @@ package bot
 
 import (
 	"bytes"
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"os/exec"
@@ -226,28 +224,6 @@ func removeExifFromPhoto(bytes []byte) ([]byte, error) {
 	}
 	return removed_exif_bytes, nil
 }
-func generateRandomBytes(size int) ([]byte, error) {
-	bytes := make([]byte, size)
-	_, err := rand.Read(bytes)
-	return bytes, err
-}
-func generateRandomHex(length int) (string, error) {
-	var byte_size = length
-	if length%2 != 0 {
-		byte_size += 1
-	}
-	bytes, err := generateRandomBytes(byte_size / 2)
-	if err != nil {
-		return "", err
-	}
-	hex := hex.EncodeToString(bytes)
-	hex_len := len(hex)
-	for hex_len != length {
-		hex = hex[:hex_len-1]
-		hex_len = len(hex)
-	}
-	return hex, nil
-}
 
 // Returns saved photo path
 func downloadAndSavePhoto(download_url string) (string, error) {
@@ -266,7 +242,10 @@ func downloadAndSavePhoto(download_url string) (string, error) {
 	}
 
 	// Generate random pic name
-	pic_name, err := generateRandomHex(32)
+	// Get picture name length
+	pic_name_length_str := setting.ReadFieldInSettingData("PICTURE_NAME_LENGTH")
+	pic_name_length, err := strconv.Atoi(pic_name_length_str)
+	pic_name, err := utils.GenerateRandomHex(pic_name_length)
 	if err != nil {
 		log.Printf("Error occurred during generate random file name - %s", err.Error())
 		return "", err
@@ -497,6 +476,9 @@ func makeMainKeyboard(user_telegram_id int) (*tgbotapi.ReplyKeyboardMarkup, erro
 				tgbotapi.NewKeyboardButton(ADMIN_ADD_BOOK_KEYBOARD_ITEM_TITLE),
 			),
 			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(ADMIN_CHECK_ORDER_BY_TRACKING_CODE),
+			),
+			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(ADMIN_BACK_TO_USER_PANEL_ITEM_TITLE)),
 		)
 		return &keyboard, nil
@@ -654,7 +636,7 @@ func makeOrderInfoMessage(orders_info *db_action.UserOrderForShow) string {
 	var result string
 
 	// Add order time and status
-	result += fmt.Sprintf("\n- %s (%s)\n- وضعیت: %s", "جزيیات سفارش ثبت شده در تاریخ :", ConvertTimeToPersian(orders_info.OrderTime), orders_info.OrderStatus)
+	result += fmt.Sprintf("\n- %s (%s)\n- وضعیت: %s\n- کد رهگیری: %s", "جزيیات سفارش ثبت شده در تاریخ :", ConvertTimeToPersian(orders_info.OrderTime), orders_info.OrderStatus, orders_info.OrderTrackingCode)
 	// Add order books
 	result += "\n- محتویات: "
 	for i := range orders_info.Books {

@@ -8,6 +8,7 @@ import (
 
 	db_action "github.com/0ne-zero/BookShopBot/internal/database/action"
 	"github.com/0ne-zero/BookShopBot/internal/database/model"
+	setting "github.com/0ne-zero/BookShopBot/internal/utils/settings"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -768,6 +769,41 @@ func FAQ_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	msg.ParseMode = "html"
 	if _, err := bot_api.Send(msg); err != nil {
 		log.Printf("Error occurred during send start message to normal user - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+	}
+}
+func CheckOrderByTrackingCode_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
+	// Get tracking code from user
+	admin_tracking_code, err := getInputFromUser(bot_api, update, updates, REQUEST_TRACKING_CODE, updateValidateFunc)
+	if err != nil {
+		log.Printf("Error occurred during get tracking code from admin - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
+	}
+	// Get tracking code tracking code length from setting file
+	tracking_code_length_str := setting.ReadFieldInSettingData("TRACKING_CODE_LENGTH")
+	tracking_code_length, err := strconv.Atoi(tracking_code_length_str)
+	if err != nil {
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		log.Fatalf("Cannot convert setting tracking code length to int - %s", err.Error())
+	}
+	if len(admin_tracking_code) != tracking_code_length {
+		log.Printf("Admin entered tracking code with diffrent length of standard length")
+		SendError(bot_api, update.FromChat().ChatConfig().ChatID, LENGTH_OF_TRACKING_CODE_IS_INCORRECT)
+		return
+	}
+
+	// Get order info
+	order_info, err := db_action.GetOrderInfoByTrackingCode(admin_tracking_code)
+	if err != nil {
+		log.Printf("Error occurred during get order info by tracking code - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+	}
+	message := makeOrderInfoMessage(order_info)
+	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
+	msg.ParseMode = "html"
+	if _, err = bot_api.Send(msg); err != nil {
+		log.Printf("Error occurred during send order info message that retrived by tracking code - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 	}
 }
