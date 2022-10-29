@@ -87,6 +87,8 @@ type BookAgeCategory struct {
 // Ordering
 type Order struct {
 	Base
+	TrackingCode     string
+	PostTrackingCode string
 	// Order has one Cart
 	Cart   *Cart
 	CartID uint `gorm:"NOT NULL;"`

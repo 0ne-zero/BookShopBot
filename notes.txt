@@ -1,4 +1,3 @@
-empty cart when user ordered
 complete shipment cost function
 add tracking code to order
 armanveysi id = 1721351376

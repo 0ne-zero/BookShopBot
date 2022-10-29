@@ -8,6 +8,7 @@ import (
 
 	"github.com/0ne-zero/BookShopBot/internal/database"
 	"github.com/0ne-zero/BookShopBot/internal/database/model"
+	"github.com/0ne-zero/BookShopBot/internal/utils"
 )
 
 type Models interface {
@@ -340,11 +341,17 @@ func AddOrder(user_telegram_id int) error {
 	if err != nil {
 		return err
 	}
+	// Generate Tracking code
+	track_code, err := utils.GenerateRandomHex(16)
+	if err != nil {
+		return err
+	}
 	// Create order
 	order := &model.Order{
 		UserID:        uint(user_id),
 		CartID:        uint(cart_id),
 		OrderStatusID: uint(IN_CONFIRMATION_QUEUE_ORDER_STATUS_ID),
+		TrackingCode:  track_code,
 	}
 	err = db.Create(order).Error
 	if err != nil {

@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -62,4 +64,26 @@ func IsFloatNumberRound(n float64) bool {
 	} else {
 		return true
 	}
+}
+func GenerateRandomBytes(size int) ([]byte, error) {
+	bytes := make([]byte, size)
+	_, err := rand.Read(bytes)
+	return bytes, err
+}
+func GenerateRandomHex(length int) (string, error) {
+	var byte_size = length
+	if length%2 != 0 {
+		byte_size += 1
+	}
+	bytes, err := GenerateRandomBytes(byte_size / 2)
+	if err != nil {
+		return "", err
+	}
+	hex := hex.EncodeToString(bytes)
+	hex_len := len(hex)
+	for hex_len != length {
+		hex = hex[:hex_len-1]
+		hex_len = len(hex)
+	}
+	return hex, nil
 }
