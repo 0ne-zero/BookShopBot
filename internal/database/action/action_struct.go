@@ -25,7 +25,9 @@ type OrderBook struct {
 	Price  float32
 }
 type UserOrderForShow struct {
-	OrderTime   *time.Time
-	OrderStatus string
-	Books       []OrderBook
+	OrderTime             *time.Time
+	OrderStatus           string
+	OrderTrackingCode     string
+	OrderPostTrackingCode string
+	Books                 []OrderBook
 }
