@@ -798,13 +798,23 @@ func CheckOrderByTrackingCode_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *
 	if err != nil {
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 		log.Fatalf("Cannot convert setting tracking code length to int - %s", err.Error())
+		return
 	}
 	if len(admin_tracking_code) != tracking_code_length {
 		log.Printf("Admin entered tracking code with diffrent length of standard length")
 		SendError(bot_api, update.FromChat().ChatConfig().ChatID, LENGTH_OF_TRACKING_CODE_IS_INCORRECT)
 		return
 	}
-
+	// Check is any order exists with that tracking code
+	if order_exists, err := db_action.IsOrderExistByTrackingCode(admin_tracking_code); err != nil {
+		log.Printf("Error occurred during check order exists by tracking code - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
+	} else if !order_exists {
+		log.Print("Admin entered unknown tracking code")
+		SendError(bot_api, update.FromChat().ChatConfig().ChatID, TRACKING_CODE_IS_INVALID)
+		return
+	}
 	// Get order info
 	order_info, err := db_action.GetOrderInfoByTrackingCode(admin_tracking_code)
 	if err != nil {
@@ -816,6 +826,57 @@ func CheckOrderByTrackingCode_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *
 	msg.ParseMode = "html"
 	if _, err = bot_api.Send(msg); err != nil {
 		log.Printf("Error occurred during send order info message that retrived by tracking code - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+	}
+}
+func AddPostTrackingCode_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
+	// Get tracking code from user
+	admin_tracking_code, err := getInputFromUser(bot_api, update, updates, REQUEST_TRACKING_CODE, updateValidateFunc)
+	if err != nil {
+		log.Printf("Error occurred during get tracking code from admin - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
+	}
+	// Get tracking code tracking code length from setting file
+	tracking_code_length_str := setting.ReadFieldInSettingData("TRACKING_CODE_LENGTH")
+	tracking_code_length, err := strconv.Atoi(tracking_code_length_str)
+	if err != nil {
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		log.Fatalf("Cannot convert setting tracking code length to int - %s", err.Error())
+		return
+	}
+	if len(admin_tracking_code) != tracking_code_length {
+		log.Printf("Admin entered tracking code with diffrent length of standard length")
+		SendError(bot_api, update.FromChat().ChatConfig().ChatID, LENGTH_OF_TRACKING_CODE_IS_INCORRECT)
+		return
+	}
+	// Check is any order exists with that tracking code
+	if order_exists, err := db_action.IsOrderExistByTrackingCode(admin_tracking_code); err != nil {
+		log.Printf("Error occurred during check order exists by tracking code - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
+	} else if !order_exists {
+		log.Print("Admin entered unknown tracking code")
+		SendError(bot_api, update.FromChat().ChatConfig().ChatID, TRACKING_CODE_IS_INVALID)
+		return
+	}
+	// Ok, we found order, now we should get post tracking code for this order from admin
+	admin_post_tracking_code, err := getInputFromUser(bot_api, update, updates, REQUEST_ORDER_POST_TRACKING_CODE, updateValidateFunc)
+	if err != nil {
+		log.Printf("Error occurred during get post tracking code from admin - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
+	}
+	// Update order's post tracking code
+	err = db_action.AddPostTrackingCodeToOrder(admin_tracking_code, admin_post_tracking_code)
+	if err != nil {
+		log.Printf("Error occurred during add post tracking code to order - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
+	}
+	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, POST_TRACKING_CODE_ADDED_TO_ORDER)
+	if _, err = bot_api.Send(msg); err != nil {
+		log.Printf("Error occurred during send post tracking code added to order message - %s", err.Error())
 		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
 	}
 }
