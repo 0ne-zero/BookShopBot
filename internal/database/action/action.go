@@ -340,6 +340,23 @@ func AddRejectionReasonToOrder(order_id int, reason string) error {
 	err := db.Create(&reason_model).Error
 	return err
 }
+func IsOrderExistByTrackingCode(tracking_code string) (bool, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	var exist bool
+	err := db.Model(&model.Order{}).Where("tracking_code = ?", tracking_code).Select("count(*) > 0").Scan(&exist).Error
+	return exist, err
+}
+func AddPostTrackingCodeToOrder(order_tracking_code, post_tracking_code string) error {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	err := db.Model(&model.Order{}).Where("tracking_code = ?", order_tracking_code).Update("post_tracking_code", post_tracking_code).Error
+	return err
+}
 func AddOrder(user_telegram_id int) error {
 	db := database.InitializeOrGetDB()
 	if db == nil {

@@ -148,6 +148,9 @@ func user_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update
 		// FAQ message
 	case bot.FAQ_KEYBOARD_ITEM_TITLE:
 		bot.FAQ_KeyboardHandler(bot_api, update)
+		// Add post tracking code to order
+	case bot.ADD_POST_TRACKING_CODE_KEYBOARD_ITEM_TITLE:
+		bot.AddPostTrackingCode_KeyboardHandler(bot_api, update, updates)
 	}
 }
 func admin_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update, updates *tgbotapi.UpdatesChannel) {
@@ -203,5 +206,8 @@ func admin_Message_Text_Handler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Updat
 		// Show cart handler
 	case bot.CART_KEYBOARD_ITEM_TITLE:
 		bot.Cart_KeyboardHandler(bot_api, update)
+		// Add post tracking code to order
+	case bot.ADD_POST_TRACKING_CODE_KEYBOARD_ITEM_TITLE:
+		bot.AddPostTrackingCode_KeyboardHandler(bot_api, update, updates)
 	}
 }
