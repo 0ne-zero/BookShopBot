@@ -82,13 +82,14 @@ const (
 	LENGTH_OF_TRACKING_CODE_IS_INCORRECT = "طول کد رهگیری وارد شده اشتباه است !"
 
 	// Keyboards item title
-	SEARCH_BOOK_KEYBOARD_ITEM_TITLE   = "جستجوی کتاب"
-	CART_KEYBOARD_ITEM_TITLE          = "سبد خرید"
-	BUY_CART_KEYBOARD_ITEM_TITLE      = "خرید سبد"
-	CONTACT_ADMIN_KEYBOARD_ITEM_TITLE = "ارتباط با ادمین"
-	ADDRESS_KEYBOARD_ITEM_TITLE       = "تنظیم ادرس"
-	SHOW_ORDERS_KEYBOARD_ITEM_TITLE   = "سفارشات"
-	FAQ_KEYBOARD_ITEM_TITLE           = "سوالات متداول"
+	SEARCH_BOOK_KEYBOARD_ITEM_TITLE            = "جستجوی کتاب"
+	CART_KEYBOARD_ITEM_TITLE                   = "سبد خرید"
+	BUY_CART_KEYBOARD_ITEM_TITLE               = "خرید سبد"
+	CONTACT_ADMIN_KEYBOARD_ITEM_TITLE          = "ارتباط با ادمین"
+	ADDRESS_KEYBOARD_ITEM_TITLE                = "تنظیم ادرس"
+	SHOW_ORDERS_KEYBOARD_ITEM_TITLE            = "سفارشات"
+	FAQ_KEYBOARD_ITEM_TITLE                    = "سوالات متداول"
+	ADD_POST_TRACKING_CODE_KEYBOARD_ITEM_TITLE = "افزودن کد رهگیری"
 
 	MAIN_MENU_ITEM_TITLE       = "منو اصلی"
 	CANCEL_KEYBOARD_ITEM_TITLE = "انصراف"

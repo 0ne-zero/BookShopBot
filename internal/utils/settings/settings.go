@@ -60,6 +60,10 @@ func validateSettingData(data map[string]string) error {
 		"ADMIN_TELEGRAM_ID",
 		"ADMIN_TELEGRAM_USERNAME",
 		"DSN",
+		"STORE_CART_NUMBER",
+		"STORE_CART_NUMBER_OWNER_FULLNAME",
+		"TRACKING_CODE_LENGTH",
+		"PICTURE_NAME_LENGTH",
 	}
 
 	var exists bool
