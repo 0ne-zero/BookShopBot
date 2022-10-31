@@ -1,7 +1,5 @@
 complete shipment cost function
-add tracking code to order
 1721351376
-validate config file function
 maybe check order by tracking code can be more fancy
 show rejection reason and more
 388661923

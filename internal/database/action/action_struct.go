@@ -31,3 +31,11 @@ type UserOrderForShow struct {
 	OrderPostTrackingCode string
 	Books                 []OrderBook
 }
+type Statistics struct {
+	NumberOfBooks                     uint
+	NumberOfOrders                    uint
+	NumberOfUsers                     uint
+	NumberOfDeliveredOrders           uint
+	NumberOfInConfirmationQueueOrders uint
+	NumberOfRejectedOrders            uint
+}

@@ -722,6 +722,20 @@ func Admin_ConfirmOrders_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbot
 	}
 }
 func Admin_Statistics_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	// Get statistics
+	stats, err := db_action.GetStatistics()
+	if err != nil {
+		log.Printf("Error occurred during get statistics - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+		return
+	}
+	message := makeStatisticsMessage(stats)
+
+	msg := tgbotapi.NewMessage(update.FromChat().ChatConfig().ChatID, message)
+	if _, err = bot_api.Send(msg); err != nil {
+		log.Printf("Error occurred during send statistics message - %s", err.Error())
+		SendUnknownError(bot_api, update.FromChat().ChatConfig().ChatID)
+	}
 }
 func Admin_BackToAdminPanel_KeyboardHandler(bot_api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	ADMIN_WANTS_TO_GO_USER_MODE = false

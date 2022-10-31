@@ -465,6 +465,11 @@ func ConvertTimeToPersian(t *time.Time) string {
 	format := fmt.Sprintf("%d-%d-%d", p_time.Year(), p_time.Month(), p_time.Day())
 	return format
 }
+func makeStatisticsMessage(stats *db_action.Statistics) string {
+	var message string
+	message += fmt.Sprintf(STATISTICS_FORMAT, stats.NumberOfUsers, stats.NumberOfBooks, stats.NumberOfOrders, stats.NumberOfInConfirmationQueueOrders, stats.NumberOfDeliveredOrders, stats.NumberOfRejectedOrders)
+	return message
+}
 func makeMainKeyboard(user_telegram_id int) (*tgbotapi.ReplyKeyboardMarkup, error) {
 	// Check user is admin
 	if IsAdmin(user_telegram_id) {
