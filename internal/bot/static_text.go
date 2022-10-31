@@ -69,6 +69,7 @@ const (
 	BOOK_ADDED_TO_CART_MESSAGE                        = "کتاب به سبد خرید اضافه شد."
 	THERE_IS_NO_IN_CONFIRMATION_ORDER_LEFT            = "سفارش دیگری در صف تایید باقی نمانده است !"
 	SWITCH_TO_PV_FORMAT                               = "https://t.me/%s"
+	STATISTICS_FORMAT                                 = "تعداد کاربران: %s\nتعداد کتوب: %s\n\nتعداد سفارشات: %s\nتعداد سفارشات در صف تایید: %s\nتعداد سفارشات تحویل داده شده: %s\nتعداد سفارشات رد تایید شده: %s\n"
 	ADDRESS_ADDED_MESSAGE                             = "ادرس شما تنظیم شد."
 	ADD_BOOK_FROM_CART_MESSAGE                        = "با کلیک بر روی دکمه ی زیر میتوانید کتاب را به سبد خرید اضافه کنید !"
 	REMOVE_BOOK_FROM_CART_MESSAGE                     = "با کلیک بر روی دکمه ی زیر میتوانید کتاب را از سبد خرید حذف کنید !"

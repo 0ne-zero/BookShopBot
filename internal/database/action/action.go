@@ -340,6 +340,58 @@ func AddRejectionReasonToOrder(order_id int, reason string) error {
 	err := db.Create(&reason_model).Error
 	return err
 }
+func GetStatistics() (*Statistics, error) {
+	db := database.InitializeOrGetDB()
+	if db == nil {
+		log.Fatal("Cannot connect to the database")
+	}
+	// Get number of books
+	var number_of_books int64
+	err := db.Model(&model.Book{}).Count(&number_of_books).Error
+	if err != nil {
+		return nil, err
+	}
+	// Get number of orders
+	var order_model *model.Order
+	var number_of_orders int64
+	err = db.Model(order_model).Count(&number_of_orders).Error
+	if err != nil {
+		return nil, err
+	}
+	// Get number of delivered orders
+	var number_of_delivered_orders int64
+	err = db.Model(order_model).Where("order_status_id = ?", DELIVERED_ORDER_STATUS_ID).Count(&number_of_delivered_orders).Error
+	if err != nil {
+		return nil, err
+	}
+	// Get number of in confirmation queue orders
+	var number_of_in_confirmation_orders int64
+	err = db.Model(order_model).Where("order_status_id = ?", IN_CONFIRMATION_QUEUE_ORDER_STATUS_ID).Count(&number_of_in_confirmation_orders).Error
+	if err != nil {
+		return nil, err
+	}
+	// Get number of rejected orders
+	var number_of_rejected_orders int64
+	err = db.Model(order_model).Where("order_status_id = ?", REJECTED_ORDER_STATUS_ID).Count(&number_of_rejected_orders).Error
+	if err != nil {
+		return nil, err
+	}
+	// Get number of users
+	var number_of_users int64
+	err = db.Model(&model.User{}).Count(&number_of_users).Error
+	if err != nil {
+		return nil, err
+	}
+	statistics := Statistics{
+		NumberOfUsers:                     uint(number_of_users),
+		NumberOfBooks:                     uint(number_of_books),
+		NumberOfOrders:                    uint(number_of_orders),
+		NumberOfDeliveredOrders:           uint(number_of_delivered_orders),
+		NumberOfInConfirmationQueueOrders: uint(number_of_in_confirmation_orders),
+		NumberOfRejectedOrders:            uint(number_of_rejected_orders),
+	}
+	return &statistics, nil
+}
 func IsOrderExistByTrackingCode(tracking_code string) (bool, error) {
 	db := database.InitializeOrGetDB()
 	if db == nil {
