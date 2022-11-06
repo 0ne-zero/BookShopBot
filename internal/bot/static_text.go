@@ -2,7 +2,7 @@ package bot
 
 import "path/filepath"
 
-const API_KEY = "5360047799:AAE95DZ1rnPnxP5vLbkcOVREYGfPFqARbQs"
+const API_KEY = "xxx"
 
 var BOT_USERNAME = ""
 var ADMIN_WANTS_TO_GO_USER_MODE = false
