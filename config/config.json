@@ -1,0 +1,9 @@
+{
+    "ADMIN_TELEGRAM_ID":"1111",
+    "ADMIN_TELEGRAM_USERNAME": "1111",
+    "DSN":"me:xxxxx@tcp(127.0.0.1:3306)/book_shop_arezo?parseTime=true",
+    "STORE_CART_NUMBER":"1111",
+    "STORE_CART_NUMBER_OWNER_FULLNAME":"me",
+    "TRACKING_CODE_LENGTH":"16",
+    "PICTURE_NAME_LENGTH":"32"
+}
